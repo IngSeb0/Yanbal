@@ -1,0 +1,7 @@
+dist
+vercel-dist
+.vinext
+.wrangler
+work
+outputs
+app/_sites-preview

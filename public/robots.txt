@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://yanbal-promos-cucuta-bogota.vercel.app/sitemap.xml
