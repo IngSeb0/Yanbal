@@ -128,6 +128,11 @@
       window.gtag("event", "generate_lead", { method: "WhatsApp" });
     return true;
   };
+  window.yanbalTrackContent = (event, details = {}) => {
+    if (!window.yanbalAnalyticsAllowed()) return false;
+    window.dataLayer.push({ event, ...details });
+    return true;
+  };
   window.yanbalTrackBeginCheckout = ({ cart = [], total = 0 } = {}) =>
     Promise.resolve(
       window.yanbalTrack("begin_checkout", {
@@ -170,6 +175,28 @@
     }
     if (e.target.closest("[data-consent-settings]"))
       document.querySelector("[data-consent-banner]").hidden = false;
+    const share = e.target.closest("[data-content-share]");
+    if (share) {
+      const method = share.dataset.contentShare;
+      window.yanbalTrackContent("share", {
+        method,
+        content_type: "guide",
+        item_id: share.dataset.contentId,
+      });
+      if (method === "native") {
+        e.preventDefault();
+        const data = {
+          title: share.dataset.shareTitle,
+          text: share.dataset.shareText,
+          url: share.dataset.shareUrl,
+        };
+        if (navigator.share) navigator.share(data).catch(() => {});
+        else if (navigator.clipboard)
+          navigator.clipboard.writeText(data.url).then(() => {
+            share.textContent = "Enlace copiado";
+          });
+      }
+    }
     const link = e.target.closest("a[href]");
     if (link) {
       try {

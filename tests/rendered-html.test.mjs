@@ -22,6 +22,17 @@ test("home is bounded, buy-first and keeps catalog/city/support navigation", () 
   assert.match(s, /\/yanbal-colombia/);
   assert.doesNotMatch(s, /schema.org\/InStock/);
 });
+test("shareable fragrance guide is crawlable and links verified catalog products", () => {
+  const s = html("/guias/combinar-perfumes");
+  assert.match(s, /Cómo combinar perfumes y lociones paso a paso/);
+  assert.match(s, /data-content-share="whatsapp"/);
+  assert.match(s, /data-content-share="native"/);
+  assert.match(s, /BreadcrumbList/);
+  assert.match(s, /"@type":"Article"/);
+  assert.ok((s.match(/data-product-card/g) || []).length === 8);
+  assert.match(html("/"), /\/guias\/combinar-perfumes/);
+  assert.match(html("/guias"), /\/guias\/combinar-perfumes/);
+});
 test("469 independent HTML pages preserve SKU, image, metadata and truthful schema", () => {
   for (const p of products) {
     const s = html(productPath(p));

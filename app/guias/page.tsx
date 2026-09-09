@@ -7,6 +7,7 @@ export const metadata: Metadata = {
 };
 
 const guides = [
+  ["/guias/combinar-perfumes", "Cómo combinar perfumes", "Método práctico para probar perfume y loción por capas sin atribuir notas no verificadas."],
   ["/guias/elegir-perfume", "Cómo elegir un perfume", "Compara ocasión, presentación y presupuesto sin atribuir características que el catálogo no confirma."],
   ["/guias/total-block", "Qué Total Block elegir", "Compara las presentaciones por las características indicadas en su nombre y ficha."],
   ["/guias/elegir-tono-maquillaje", "Cómo elegir un tono", "Pasos prácticos para reducir diferencias entre la pantalla y el resultado real."],

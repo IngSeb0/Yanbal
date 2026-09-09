@@ -82,6 +82,11 @@ test("tags use existing GTM and Ads IDs after consent; attribution is retained",
     payment_type: "Mercado Pago",
   });
   w.yanbalTrackWhatsAppLead();
+  w.yanbalTrackContent("share", {
+    method: "whatsapp",
+    content_type: "guide",
+    item_id: "combinar_perfumes",
+  });
   const purchase = {
     transaction_id: "YAN-TEST-TRANSACTION",
     value: 121000,
@@ -119,6 +124,7 @@ test("tags use existing GTM and Ads IDs after consent; attribution is retained",
   assert.ok(updatedEvents.includes("add_payment_info"));
   assert.ok(events.includes("payment_click"));
   assert.ok(events.includes("whatsapp_click"));
+  assert.ok(events.includes("share"));
   assert.ok(events.includes("purchase"));
   assert.deepEqual(
     JSON.parse(
@@ -145,6 +151,7 @@ test("tags use existing GTM and Ads IDs after consent; attribution is retained",
 test("rejected consent prevents tags, analytics events and attribution", () => {
   const t = setup(false);
   t.context.yanbalTrack("add_to_cart", { value: 1 });
+  t.context.yanbalTrackContent("share", { item_id: "combinar_perfumes" });
   assert.equal(t.scripts.length, 0);
   assert.equal(Object.keys(t.context.yanbalAttribution()).length, 0);
   assert.ok(!t.context.dataLayer.some((x) => x.event));
