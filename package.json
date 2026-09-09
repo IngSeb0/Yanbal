@@ -7,12 +7,16 @@
   },
   "scripts": {
     "dev": "vinext dev",
-    "build": "vinext build",
+    "build": "node scripts/export-commerce-data.mjs && vinext build",
     "build:vercel": "npm run build && node scripts/export-vercel-static.mjs",
     "start": "vinext start",
     "test": "npm run build && node scripts/export-vercel-static.mjs && node --test tests/rendered-html.test.mjs",
-    "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
-    "db:generate": "drizzle-kit generate"
+    "lint": "eslint . --ignore-pattern dist --ignore-pattern vercel-dist --ignore-pattern .next",
+    "db:generate": "drizzle-kit generate",
+    "test:commerce": "node --test tests/commerce.test.mjs tests/tracking.test.mjs",
+    "test:sql": "node --test tests/migration.test.mjs",
+    "test:supabase": "node scripts/verify-supabase-remote.mjs",
+    "preview:commerce": "node scripts/serve-commerce.mjs"
   },
   "dependencies": {
     "@vercel/analytics": "^2.0.1",
@@ -22,6 +26,7 @@
   },
   "devDependencies": {
     "@cloudflare/vite-plugin": "1.37.1",
+    "@electric-sql/pglite": "0.5.8",
     "@eslint/js": "9.39.4",
     "@next/eslint-plugin-next": "16.2.6",
     "@tailwindcss/postcss": "4.2.1",

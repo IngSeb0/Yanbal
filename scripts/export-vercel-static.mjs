@@ -1,98 +1,86 @@
-import { cp, mkdir, rm, writeFile } from "node:fs/promises";
+import { cp, mkdir, rm, writeFile, readdir } from "node:fs/promises";
 import path from "node:path";
-
+import { products, productPath } from "../lib/commerce-products.js";
+import { store } from "../config/store.js";
+import {
+  CATALOG_PAGE_COUNT,
+  catalogPagePath,
+} from "../lib/catalog-pagination.js";
 const outDir = path.resolve("vercel-dist");
-const baseUrl = process.env.VERCEL_URL
-  ? `https://${process.env.VERCEL_URL}/`
-  : "https://yanbal-promos-cucuta-bogota.vercel.app/";
-
+if (path.dirname(outDir) !== process.cwd())
+  throw Error("Output outside project");
 await rm(outDir, { recursive: true, force: true });
 await mkdir(outDir, { recursive: true });
 await cp(path.resolve("dist/client"), outDir, { recursive: true });
-
-const workerUrl = new URL("../dist/server/index.js", import.meta.url);
-workerUrl.searchParams.set("export", `${process.pid}-${Date.now()}`);
-const { default: worker } = await import(workerUrl.href);
-
-async function renderPage(pathname) {
-  const url = new URL(pathname, baseUrl);
-  const response = await worker.fetch(
-    new Request(url, {
-      headers: { accept: "text/html" },
-    }),
+const { default: worker } = await import(
+  new URL("../dist/server/index.js", import.meta.url).href
+);
+async function render(route, expected = 200) {
+  const res = await worker.fetch(
+    new Request(store.url + route, { headers: { accept: "text/html" } }),
     {
-      ASSETS: {
-        fetch: async () => new Response("Not found", { status: 404 }),
-      },
+      ASSETS: { fetch: async () => new Response("Not found", { status: 404 }) },
     },
-    {
-      waitUntil() {},
-      passThroughOnException() {},
-    },
+    { waitUntil() {}, passThroughOnException() {} },
   );
-
-  let html = await response.text();
-  html = html
+  if (res.status !== expected)
+    throw Error("Render failed " + route + ": " + res.status);
+  return (await res.text())
     .replace(/<link rel="modulepreload"[^>]*>/g, "")
     .replace(/<script>(?:(?!<\/script>).)*<\/script>/gs, "")
     .replace(/<script(?=[^>]*\bsrc=["'][^"']*\/_next\/)[^>]*><\/script>/g, "")
-    .replaceAll("http://localhost:3000/", baseUrl);
-
-  return html;
+    .replaceAll("http://localhost:3000/", store.url + "/");
 }
-
-const homeHtml = await renderPage("/");
-await writeFile(path.join(outDir, "index.html"), homeHtml, "utf8");
-await writeFile(path.join(outDir, "404.html"), homeHtml, "utf8");
-
-const catalogHtml = await renderPage("/catalogo");
-await writeFile(path.join(outDir, "catalogo.html"), catalogHtml, "utf8");
-await mkdir(path.join(outDir, "catalogo"), { recursive: true });
-await writeFile(path.join(outDir, "catalogo", "index.html"), catalogHtml, "utf8");
-
-const giftsHtml = await renderPage("/regalables");
-await writeFile(path.join(outDir, "regalables.html"), giftsHtml, "utf8");
-await mkdir(path.join(outDir, "regalables"), { recursive: true });
-await writeFile(path.join(outDir, "regalables", "index.html"), giftsHtml, "utf8");
-
-const thanksHtml = await renderPage("/gracias");
-await writeFile(path.join(outDir, "gracias.html"), thanksHtml, "utf8");
-await mkdir(path.join(outDir, "gracias"), { recursive: true });
-await writeFile(path.join(outDir, "gracias", "index.html"), thanksHtml, "utf8");
-
-const cucutaHtml = await renderPage("/cucuta");
-await writeFile(path.join(outDir, "cucuta.html"), cucutaHtml, "utf8");
-await mkdir(path.join(outDir, "cucuta"), { recursive: true });
-await writeFile(path.join(outDir, "cucuta", "index.html"), cucutaHtml, "utf8");
-
-const bogotaHtml = await renderPage("/bogota");
-await writeFile(path.join(outDir, "bogota.html"), bogotaHtml, "utf8");
-await mkdir(path.join(outDir, "bogota"), { recursive: true });
-await writeFile(path.join(outDir, "bogota", "index.html"), bogotaHtml, "utf8");
-
-const loveColombiaHtml = await renderPage("/regalos-amor-amistad-colombia");
-await writeFile(path.join(outDir, "regalos-amor-amistad-colombia.html"), loveColombiaHtml, "utf8");
-await mkdir(path.join(outDir, "regalos-amor-amistad-colombia"), { recursive: true });
-await writeFile(
-  path.join(outDir, "regalos-amor-amistad-colombia", "index.html"),
-  loveColombiaHtml,
-  "utf8",
+const directories = await readdir("app", { withFileTypes: true }),
+  routes = ["/"];
+for (const d of directories) {
+  if (d.isDirectory() && !d.name.includes("[")) {
+    if ((await readdir("app/" + d.name)).includes("page.tsx"))
+      routes.push("/" + d.name);
+  }
+}
+routes.push(
+  "/guias/elegir-perfume",
+  "/guias/total-block",
+  "/guias/elegir-tono-maquillaje",
+  "/guias/regalos-por-presupuesto",
+  ...Array.from({ length: CATALOG_PAGE_COUNT - 1 }, (_, index) =>
+    catalogPagePath(index + 2),
+  ),
+  ...products.map(productPath),
+  ...["exitoso", "pendiente", "error"].map((s) => "/pedido/" + s),
 );
-
-const perfumesHtml = await renderPage("/perfumes-yanbal-cucuta-bogota");
-await writeFile(path.join(outDir, "perfumes-yanbal-cucuta-bogota.html"), perfumesHtml, "utf8");
-await mkdir(path.join(outDir, "perfumes-yanbal-cucuta-bogota"), { recursive: true });
+for (const route of routes) {
+  const html = await render(route);
+  const file = route === "/" ? "index.html" : route.slice(1) + ".html";
+  await mkdir(path.dirname(path.join(outDir, file)), { recursive: true });
+  await writeFile(path.join(outDir, file), html);
+}
 await writeFile(
-  path.join(outDir, "perfumes-yanbal-cucuta-bogota", "index.html"),
-  perfumesHtml,
-  "utf8",
+  path.join(outDir, "404.html"),
+  await render("/producto/no-existe", 404),
 );
-
-const bloqueadoresHtml = await renderPage("/bloqueadores-yanbal-cucuta-bogota");
-await writeFile(path.join(outDir, "bloqueadores-yanbal-cucuta-bogota.html"), bloqueadoresHtml, "utf8");
-await mkdir(path.join(outDir, "bloqueadores-yanbal-cucuta-bogota"), { recursive: true });
+const indexable = routes.filter((r) => !/^\/(checkout|pedido|gracias)/.test(r));
+const sitemap =
+  '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' +
+  indexable
+    .map(
+      (r) => "<url><loc>" + store.url + (r === "/" ? "/" : r) + "</loc></url>",
+    )
+    .join("") +
+  "</urlset>";
+await writeFile(path.join(outDir, "sitemap.xml"), sitemap);
+await writeFile("public/sitemap.xml", sitemap);
 await writeFile(
-  path.join(outDir, "bloqueadores-yanbal-cucuta-bogota", "index.html"),
-  bloqueadoresHtml,
-  "utf8",
+  path.join(outDir, "robots.txt"),
+  "User-agent: *\nAllow: /\nDisallow: /api/\nDisallow: /checkout\nDisallow: /pedido/\nDisallow: /gracias\nSitemap: " +
+    store.url +
+    "/sitemap.xml\n",
+);
+console.log(
+  "Exported",
+  routes.length,
+  "routes;",
+  products.length,
+  "product pages",
 );

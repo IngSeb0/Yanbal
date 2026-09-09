@@ -1,116 +1,172 @@
+/* eslint-disable @next/next/no-html-link-for-pages -- Static export intentionally uses full-page navigation without React hydration. */
 import type { Metadata } from "next";
-import { Analytics } from "@vercel/analytics/next";
+import { store } from "../config/store.js";
 import "./globals.css";
-
-const googleTagManagerId = "GTM-NBHK5MMR";
-const googleAdsId = "AW-18340615060";
-const vercelAnalyticsSdkVersion = "2.0.1";
-
+import "./commerce.css";
 export const metadata: Metadata = {
+  metadataBase: new URL(store.url),
   title: {
-    default: "Yanbal C9 Cúcuta y Bogotá | Belleza, bloqueadores y perfumes",
-    template: "%s | Yanbal Cúcuta y Bogotá",
+    default: "Productos Yanbal en oferta | Envíos Colombia",
+    template: "%s | Yanbal Colombia",
   },
   description:
-    "Productos de belleza Yanbal C9 en Cúcuta y Bogotá: perfumes, bloqueadores Total Block, maquillaje, cuidado facial y regalables con pedido por WhatsApp Business.",
-  applicationName: "Promociones Yanbal",
-  authors: [{ name: "Yanbal Promociones" }],
-  creator: "Yanbal Promociones",
-  publisher: "Yanbal Promociones",
-  category: "Belleza y cuidado personal",
-  keywords: [
-    "Yanbal Cúcuta",
-    "Yanbal Bogotá",
-    "catálogo Yanbal C9",
-    "ofertas Yanbal Cúcuta",
-    "ofertas Yanbal Bogotá",
-    "regalos Amor y Amistad Yanbal",
-    "perfumes Yanbal",
-    "perfumes Yanbal Cúcuta",
-    "perfumes Yanbal Bogotá",
-    "maquillaje Yanbal",
-    "protector solar Yanbal",
-    "bloqueadores Yanbal",
-    "bloqueador Yanbal Total Block",
-    "productos de belleza Cúcuta",
-    "productos de belleza Bogotá",
-  ],
+    "Compra perfumes, maquillaje y Total Block Yanbal en línea. Pago con Mercado Pago y envíos en Colombia, con atención en Cúcuta y Bogotá.",
   openGraph: {
-    title: "Yanbal C9 Cúcuta y Bogotá | Belleza, bloqueadores y perfumes",
-    description:
-      "Descuentos en productos de belleza, perfumes, bloqueadores Total Block y regalos Yanbal por WhatsApp.",
     type: "website",
     locale: "es_CO",
-    images: [
-      {
-        url: "/yanbal-banner.webp",
-        width: 601,
-        height: 700,
-        alt: "Yanbal Colombia",
-      },
-    ],
+    siteName: store.name,
+    images: [{ url: store.campaign.banner }],
   },
-  twitter: {
-    card: "summary_large_image",
-    title: "Yanbal C9 Cúcuta y Bogotá | Belleza, bloqueadores y perfumes",
-    description:
-      "Compra perfumes, bloqueadores y productos de belleza Yanbal C9 por WhatsApp Business en Cúcuta y Bogotá.",
-    images: ["/yanbal-banner.webp"],
-  },
-  icons: {
-    icon: "/favicon.svg",
-    shortcut: "/favicon.svg",
-  },
+  twitter: { card: "summary_large_image" },
+  icons: { icon: "/favicon.svg" },
 };
-
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
     <html lang="es-CO">
       <head>
-        <script
-          id="google-tag-manager"
-          dangerouslySetInnerHTML={{
-            __html: `(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-})(window,document,'script','dataLayer','${googleTagManagerId}');`,
-          }}
-        />
-        <script async src={`https://www.googletagmanager.com/gtag/js?id=${googleAdsId}`} />
-        <script
-          id="google-ads-tag"
-          dangerouslySetInnerHTML={{
-            __html: `window.dataLayer = window.dataLayer || [];
-function gtag(){dataLayer.push(arguments);}
-gtag('js', new Date());
-gtag('config', '${googleAdsId}');`,
-          }}
-        />
         <script src="/conversion-tracking.js" defer />
-        <script
-          id="vercel-web-analytics"
-          dangerouslySetInnerHTML={{
-            __html: `window.va=window.va||function(){(window.vaq=window.vaq||[]).push(arguments);};
-(function(){var src='/_vercel/insights/script.js';if(document.head.querySelector('script[src*="'+src+'"]'))return;var script=document.createElement('script');script.defer=true;script.src=src;script.dataset.sdkn='@vercel/analytics';script.dataset.sdkv='${vercelAnalyticsSdkVersion}';document.head.appendChild(script);}());`,
-          }}
-        />
+        <script src="/commerce.js" defer />
       </head>
       <body>
-        <noscript>
-          <iframe
-            src={`https://www.googletagmanager.com/ns.html?id=${googleTagManagerId}`}
-            height="0"
-            width="0"
-            style={{ display: "none", visibility: "hidden" }}
-          />
-        </noscript>
-        {children}
-        <Analytics />
+        <a className="skip-link" href="#main-content">
+          Saltar al contenido
+        </a>
+        <div className="benefits-bar">
+          Envío gratis en Cúcuta y Bogotá <span>·</span> Gratis desde $150.000
+          en Colombia <span>·</span> Pedido mínimo $50.000
+        </div>
+        <header className="shop-header">
+          <a className="shop-logo" href="/">
+            YANBAL<span>Belleza en Colombia</span>
+          </a>
+          <nav aria-label="Navegación principal">
+            <a href="/ofertas">Ofertas</a>
+            <a href="/perfumes-yanbal">Perfumes</a>
+            <a href="/maquillaje-yanbal">Maquillaje</a>
+            <a href="/bloqueadores-total-block">Protección solar</a>
+            <a href="/catalogo">Catálogo</a>
+            <a href="/guias">Guías</a>
+          </nav>
+          <div className="header-actions">
+            <a href="/catalogo#buscar" aria-label="Buscar productos">
+              Buscar
+            </a>
+            <button type="button" data-cart-open>
+              Carrito <span data-cart-count>0</span>
+            </button>
+            <details className="mobile-menu">
+              <summary>Menú</summary>
+              <div>
+                <a href="/ofertas">Ofertas</a>
+                <a href="/perfumes-yanbal">Perfumes</a>
+                <a href="/maquillaje-yanbal">Maquillaje</a>
+                <a href="/bloqueadores-total-block">Protección solar</a>
+                <a href="/catalogo">Catálogo</a>
+                <a href="/guias">Guías</a>
+              </div>
+            </details>
+          </div>
+        </header>
+        <div id="main-content">{children}</div>
+        <footer className="shop-footer">
+          <div>
+            <strong>{store.name}</strong>
+            <p>Asesoría independiente. Atención antes y después de comprar.</p>
+            <p>
+              Envío gratis en Cúcuta y Bogotá; $14.000 en otros destinos y
+              gratis desde $150.000. Pedido mínimo $50.000.
+            </p>
+          </div>
+          <nav aria-label="Información">
+            <a href="/yanbal-cucuta">Cúcuta</a>
+            <a href="/yanbal-bogota">Bogotá</a>
+            <a href="/yanbal-colombia">Colombia</a>
+            <a href="/catalogo">Catálogo</a>
+            <a href="/guias">Guías para elegir</a>
+            <a href="/contacto">Contacto</a>
+            <a href="/envios">Envíos</a>
+            <a href="/cambios-y-devoluciones">Cambios y devoluciones</a>
+            <a href="/privacidad">Privacidad</a>
+            <a href="/terminos">Términos</a>
+            <button type="button" data-consent-settings>
+              Preferencias de medición
+            </button>
+          </nav>
+          <a
+            href={`https://wa.me/${store.whatsapp}`}
+            target="_blank"
+            rel="noreferrer"
+          >
+            WhatsApp 302 629 3535
+          </a>
+        </footer>
+        <a
+          className="help-fab"
+          href={`https://wa.me/${store.whatsapp}`}
+          target="_blank"
+          rel="noreferrer"
+        >
+          ¿Necesitas ayuda?
+        </a>
+        <dialog
+          className="shop-cart"
+          data-cart-dialog
+          aria-labelledby="cart-title"
+        >
+          <header>
+            <h2 id="cart-title">Tu carrito</h2>
+            <button type="button" data-cart-close aria-label="Cerrar carrito">
+              ×
+            </button>
+          </header>
+          <div data-cart-items />
+          <p data-cart-subtotal />
+          <p>
+            Pedido mínimo $50.000. Envío gratis en Cúcuta y Bogotá; $14.000 en
+            otros destinos y gratis desde $150.000.
+          </p>
+          <a
+            className="button button--primary"
+            href="/checkout"
+            data-checkout-link
+          >
+            Ir a pagar
+          </a>
+          <button
+            className="button button--ghost"
+            type="button"
+            data-cart-close
+          >
+            Seguir comprando
+          </button>
+          <section data-cross-sell>
+            <h3>También te puede gustar</h3>
+            <div data-recommendations />
+          </section>
+        </dialog>
+        <div className="toast" role="status" data-toast hidden />
+        <aside
+          className="consent-bar"
+          data-consent-banner
+          hidden
+          aria-label="Preferencias de privacidad"
+        >
+          <p>
+            Con tu permiso medimos visitas y compras para mejorar la tienda.
+            Puedes comprar sin aceptar la medición.{" "}
+            <a href="/privacidad">Privacidad</a>
+          </p>
+          <button type="button" data-consent="yes">
+            Aceptar
+          </button>
+          <button type="button" data-consent="no">
+            Rechazar
+          </button>
+        </aside>
       </body>
     </html>
   );

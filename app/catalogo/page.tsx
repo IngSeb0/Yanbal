@@ -1,183 +1,144 @@
 import type { Metadata } from "next";
-import { catalogPages, type CatalogPage } from "../catalog-data";
-
+import { products } from "../../lib/commerce-products.js";
+import {
+  CATALOG_PAGE_COUNT,
+  catalogPagePath,
+} from "../../lib/catalog-pagination.js";
+import { ProductCatalogCard } from "../storefront-ui";
 export const metadata: Metadata = {
-  title: "Catálogo Yanbal C9 separado",
+  title: "Catálogo Yanbal: perfumes, maquillaje y ofertas",
   description:
-    "Catálogo Yanbal C9 Colombia separado de la tienda principal, con recortes por categoría para consultar productos, precios y códigos en Cúcuta y Bogotá.",
-  keywords: [
-    "catálogo Yanbal C9",
-    "catálogo Yanbal Cúcuta",
-    "catálogo Yanbal Bogotá",
-    "productos Yanbal Colombia",
-  ],
+    "Busca productos Yanbal por nombre o código, filtra por precio y descuento y compra en línea con envíos en Colombia.",
+  alternates: { canonical: "/catalogo" },
 };
-
-const whatsappNumber = "573026293535";
-
-const sectionOrder = [
-  "Destacados",
-  "Perfumes y colonias",
-  "Joyería para mujer",
-  "Maquillaje",
-  "Tratamiento facial",
-  "Protección solar",
-  "Cuidado personal",
-  "Mundo hombre",
-  "Bebés y niños",
-  "Catálogo Yanbal",
-];
-
-const catalogGroups = sectionOrder
-  .map((section) => ({
-    section,
-    pages: catalogPages.filter((page) => page.section === section),
-  }))
-  .filter((group) => group.pages.length > 0);
-
-function slugify(value: string) {
-  return value
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)/g, "");
-}
-
-function whatsappLink(productName: string, price: string) {
-  const text = `Hola, quiero pedir ${productName} de Yanbal C9 para Cúcuta o Bogotá. Precio: ${price}.`;
-  return `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(text)}`;
-}
-
-function catalogWhatsAppLink(page: CatalogPage) {
-  const price = page.prices.length ? page.prices.slice(0, 3).join(", ") : "consultar precio";
-  const code = page.codes.length ? ` Códigos visibles: ${page.codes.join(", ")}.` : "";
-  const text = `Hola, quiero comprar o consultar ${page.title}. Página ${page.page}. Precios visibles: ${price}.${code}`;
-  return `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(text)}`;
-}
-
-function PriceMeta({ page }: { page: CatalogPage }) {
+export default function Catalog() {
   return (
-    <div className="price-meta" aria-label="Precios y códigos visibles">
-      {page.prices.slice(0, 3).map((price) => (
-        <span key={price}>{price}</span>
-      ))}
-      {page.codes.slice(0, 2).map((code) => (
-        <span key={code}>Cód. {code}</span>
-      ))}
-      {!page.prices.length && !page.codes.length ? <span>Consultar</span> : null}
-    </div>
-  );
-}
-
-function CatalogCard({ page }: { page: CatalogPage }) {
-  return (
-    <article className="catalog-card">
-      <a href={page.image} target="_blank" rel="noreferrer" aria-label={`Ver ${page.title}`}>
-        <img
-          src={page.image}
-          alt={`Recorte del catálogo Yanbal C9: ${page.title}`}
-          width="760"
-          height="980"
-          loading="lazy"
-          decoding="async"
-        />
-      </a>
-      <div className="catalog-card__body">
-        <p className="catalog-card__eyebrow">{page.section}</p>
-        <h3>{page.title}</h3>
-        <PriceMeta page={page} />
-        <a
-          className="order-link"
-          href={catalogWhatsAppLink(page)}
-          target="_blank"
-          rel="noreferrer"
-          data-whatsapp-cta
-        >
-          Consultar por WhatsApp <span aria-hidden="true">&gt;</span>
-        </a>
-      </div>
-    </article>
-  );
-}
-
-export default function CatalogoPage() {
-  return (
-    <main>
-      <section className="hero catalog-page-hero" aria-labelledby="catalog-title">
-        <div className="hero__content">
-          <p className="eyebrow">Catálogo separado</p>
-          <h1 id="catalog-title">Catálogo Yanbal C9 completo</h1>
-          <p className="hero__copy">
-            Aquí está el catálogo por recortes y categorías. Para comprar más
-            rápido, vuelve a la tienda principal y agrega productos al carrito
-            con código y precio.
-          </p>
-          <div className="hero__actions" aria-label="Acciones del catálogo">
-            <a className="button button--primary" href="/">
-              Ir a productos con descuento
-            </a>
-            <a
-              className="button button--ghost"
-              href={whatsappLink("catálogo Yanbal C9", "consultar disponibilidad")}
-              target="_blank"
-              rel="noreferrer"
-              data-whatsapp-cta
-            >
-              WhatsApp 302 629 3535
-            </a>
-          </div>
-        </div>
-      </section>
-
-      <section className="catalog-archive catalog-archive--standalone" aria-labelledby="archive-title">
-        <div className="section-heading">
-          <p className="eyebrow">Catálogo C9</p>
-          <h2 id="archive-title">Recortes por categoría</h2>
-          <p>
-            Abre cada imagen para verla grande o consulta por WhatsApp con la
-            página, precios y códigos visibles. La compra directa está separada
-            en la página principal para mantener el carrito claro.
-          </p>
-        </div>
-
-        <nav className="section-nav" aria-label="Categorías del catálogo">
-          {catalogGroups.map((group) => (
-            <a key={group.section} href={`#catalogo-${slugify(group.section)}`}>
-              {group.section} <span>{group.pages.length}</span>
-            </a>
-          ))}
-        </nav>
-
-        {catalogGroups.map((group) => (
-          <section className="catalog-group" id={`catalogo-${slugify(group.section)}`} key={group.section}>
-            <div className="catalog-group__heading">
-              <h3>{group.section}</h3>
-              <span>{group.pages.length} recortes</span>
-            </div>
-            <div className="catalog-grid">
-              {group.pages.map((page) => (
-                <CatalogCard key={page.page} page={page} />
-              ))}
-            </div>
-          </section>
+    <main className="shop-main shop-section">
+      <p className="eyebrow">Encuentra tu favorito</p>
+      <h1>Catálogo Yanbal</h1>
+      <p>{products.length} productos · Busca por nombre, código o categoría.</p>
+      <form className="catalog-filters" data-catalog-form id="buscar">
+        <label className="search-field">
+          Buscar productos
+          <input
+            type="search"
+            name="q"
+            placeholder="Busca Ohm, Total Block, Dulce Amor, código 2040…"
+          />
+        </label>
+        <label>
+          Categoría
+          <select name="category">
+            <option value="">Todas</option>
+            {[...new Set(products.map((p) => p.category))].map((c) => (
+              <option key={c}>{c}</option>
+            ))}
+          </select>
+        </label>
+        <label>
+          Desde
+          <input name="min" type="number" min="0" placeholder="$0" />
+        </label>
+        <label>
+          Hasta
+          <input name="max" type="number" min="0" placeholder="Sin límite" />
+        </label>
+        <label>
+          Descuento
+          <select name="discount">
+            <option value="0">Todos</option>
+            <option value="20">20% o más</option>
+            <option value="30">30% o más</option>
+            <option value="50">50% o más</option>
+          </select>
+        </label>
+        <label>
+          Para
+          <select name="gender">
+            <option value="">Todos</option>
+            <option value="mujer">Mujer</option>
+            <option value="hombre">Hombre</option>
+          </select>
+        </label>
+        <label>
+          Tipo
+          <select name="type">
+            <option value="">Todos</option>
+            {[
+              "parfum",
+              "colonia",
+              "labial",
+              "crema",
+              "shampoo",
+              "collar",
+              "mascara",
+              "solar",
+            ].map((t) => (
+              <option key={t}>{t}</option>
+            ))}
+          </select>
+        </label>
+        <label>
+          Ordenar
+          <select name="sort">
+            <option value="featured">Destacados</option>
+            <option value="discount">Mayor descuento</option>
+            <option value="price">Menor precio</option>
+            <option value="price-desc">Mayor precio</option>
+            <option value="name">Nombre A–Z</option>
+          </select>
+        </label>
+        <label className="check-label">
+          <input name="offers" type="checkbox" /> Solo ofertas
+        </label>
+        <label className="check-label">
+          <input name="gifts" type="checkbox" /> Regalables
+        </label>
+        <button type="reset" className="button button--ghost">
+          Limpiar filtros
+        </button>
+      </form>
+      <p data-results-count role="status" />
+      <div className="shop-grid" data-catalog-grid>
+        {products.slice(0, 24).map((p) => (
+          <ProductCatalogCard product={p} key={p.id} />
         ))}
-      </section>
-
-      <footer className="site-footer">
-        <p>Catálogo Yanbal C9</p>
-        <div className="footer-links">
-          <a href="/">Volver a la tienda</a>
-          <a
-            href={whatsappLink("catálogo Yanbal C9", "consultar disponibilidad")}
-            target="_blank"
-            rel="noreferrer"
-            data-whatsapp-cta
-          >
-            Pedir por WhatsApp Business
-          </a>
-        </div>
-      </footer>
+      </div>
+      <div data-catalog-empty hidden>
+        <h2>No encontramos ese producto.</h2>
+        <a href="/catalogo">Ver catálogo</a> ·{" "}
+        <a href="/contacto">Preguntar por WhatsApp</a>
+      </div>
+      <button
+        className="button button--ghost load-more"
+        type="button"
+        data-load-more
+      >
+        Cargar más productos
+      </button>
+      <nav className="catalog-pagination" aria-label="Páginas del catálogo">
+        <strong aria-current="page">1</strong>
+        {Array.from({ length: CATALOG_PAGE_COUNT - 1 }, (_, index) => {
+          const page = index + 2;
+          return (
+            <a href={catalogPagePath(page)} key={page}>
+              {page}
+            </a>
+          );
+        })}
+        <a href={catalogPagePath(2)} rel="next">
+          Siguiente →
+        </a>
+      </nav>
+      <noscript>
+        Activa JavaScript para buscar y cargar más productos. Puedes abrir
+        cualquier ficha desde las categorías o el sitemap.
+      </noscript>
+      <p>
+        <a href="/catalogo-paginas">
+          Ver las páginas originales del catálogo →
+        </a>
+      </p>
     </main>
   );
 }

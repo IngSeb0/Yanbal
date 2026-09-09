@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-html-link-for-pages -- Static export uses full-page navigation. */
 import type { Metadata } from "next";
 import {
   CartExperience,

@@ -1,543 +1,288 @@
 import type { Metadata } from "next";
-import {
-  CartExperience,
-  ProductCatalogCard,
-  whatsappLink,
-  whatsappNumber,
-} from "./storefront-ui";
-import {
-  discountProducts,
-  loveAndFriendshipProducts,
-  storefrontCategories,
-  storefrontProductGroups,
-  storefrontProducts,
-} from "./product-selections";
-
+import { products } from "../lib/commerce-products.js";
+import { store } from "../config/store.js";
+import { ProductCatalogCard, AvailabilityNote } from "./storefront-ui";
 export const metadata: Metadata = {
-  title: "Yanbal C9 Cúcuta y Bogotá | Productos de belleza en descuento",
-  description:
-    "Compra productos de belleza Yanbal C9 con descuento en Cúcuta y Bogotá: perfumes, bloqueadores solares Total Block, maquillaje, cuidado facial y regalables por WhatsApp.",
-  keywords: [
-    "Yanbal Cúcuta",
-    "Yanbal Bogotá",
-    "productos Yanbal en descuento",
-    "productos de belleza Cúcuta",
-    "productos de belleza Bogotá",
-    "bloqueadores Yanbal Cúcuta",
-    "bloqueadores Yanbal Bogotá",
-    "bloqueador Total Block Yanbal",
-    "perfumes Yanbal Cúcuta",
-    "perfumes Yanbal Bogotá",
-    "ofertas Yanbal Colombia",
-    "regalos Amor y Amistad Yanbal",
-    "comprar Yanbal por WhatsApp",
-    "catálogo Yanbal C9",
-  ],
+  title: "Productos Yanbal en oferta | Envíos Colombia",
+  alternates: { canonical: "/" },
 };
-
-const businessProfile = [
-  "Asesoría personalizada por WhatsApp Business",
-  "Productos Yanbal C9 con precios de campaña",
-  "Atención local para pedidos en Cúcuta y Bogotá",
-  "Carrito para armar el pedido antes de confirmar",
+const categories = [
+  ["Perfumes para mujer", "/perfumes-mujer", "01"],
+  ["Perfumes para hombre", "/perfumes-hombre", "02"],
+  ["Protección solar", "/bloqueadores-total-block", "03"],
+  ["Maquillaje", "/maquillaje-yanbal", "04"],
+  ["Cuidado facial", "/cuidado-facial", "05"],
+  ["Cuidado personal", "/cuidado-personal", "06"],
+  ["Regalos", "/regalos-yanbal", "07"],
+  ["Ver todo", "/catalogo", "08"],
 ];
-
-const quickIntentLinks = [
-  {
-    title: "Estoy en Cúcuta",
-    text: "Confirma disponibilidad local, precio de campaña y entrega para productos Yanbal.",
-    cta: "Pedir en Cúcuta",
-    href: whatsappLink("promociones Yanbal en Cúcuta", "confirmar precio de campaña"),
-  },
-  {
-    title: "Estoy en Bogotá",
-    text: "Pregunta por perfumes, bloqueadores, maquillaje y regalables con asesoría directa.",
-    cta: "Pedir en Bogotá",
-    href: whatsappLink("promociones Yanbal en Bogotá", "confirmar precio de campaña"),
-  },
-  {
-    title: "Quiero perfume",
-    text: "Te ayudo a elegir aroma femenino, masculino o regalo según presupuesto y ocasión.",
-    cta: "Consultar perfumes",
-    href: "/perfumes-yanbal-cucuta-bogota",
-  },
-  {
-    title: "Quiero bloqueador",
-    text: "Consulta Total Block para uso diario, deporte, niños, rostro o cuerpo.",
-    cta: "Consultar bloqueador",
-    href: "/bloqueadores-yanbal-cucuta-bogota",
-  },
-  {
-    title: "Busco regalo",
-    text: "Opciones listas para Amor y Amistad: perfume, collar, brillo, bálsamo o combo.",
-    cta: "Ver regalables",
-    href: whatsappLink("regalos Yanbal Amor y Amistad", "confirmar disponibilidad"),
-  },
-  {
-    title: "Tengo un código",
-    text: "Envíame el código del catálogo y reviso precio, existencia y producto correcto.",
-    cta: "Enviar código",
-    href: whatsappLink("un producto Yanbal por código de catálogo", "consultar"),
-  },
-];
-
-const buyingQuestions = [
-  {
-    question: "¿Puedo preguntar antes de pagar?",
-    answer:
-      "Sí. Puedes escribir por WhatsApp para confirmar precio, aroma, tono, disponibilidad y entrega antes de finalizar.",
-  },
-  {
-    question: "¿Qué productos se venden más?",
-    answer:
-      "Perfumes Yanbal, bloqueadores Total Block, maquillaje, cuidado facial y regalos de Amor y Amistad son las búsquedas más comunes.",
-  },
-  {
-    question: "¿Cómo pido varios productos?",
-    answer:
-      "Agrega todo al carrito y envía el pedido completo por WhatsApp. Así se confirma más rápido y con menos errores.",
-  },
-];
-
-const localSeoTopics = [
-  {
-    title: "Productos de belleza Yanbal en Cúcuta",
-    text:
-      "Encuentra maquillaje, cuidado facial, hidratantes, labiales, iluminadores y productos de cuidado personal Yanbal con asesoría directa para pedidos en Cúcuta.",
-  },
-  {
-    title: "Bloqueadores Yanbal Total Block en Bogotá",
-    text:
-      "Consulta bloqueadores solares Yanbal, Total Block SPF 100 y protectores para rostro, cuerpo, deporte, niños y uso diario con disponibilidad para Bogotá.",
-  },
-  {
-    title: "Perfumes Yanbal con descuento",
-    text:
-      "Elige perfumes Yanbal femeninos y masculinos como Dulce Amor, Ohm, Dendur, Gaia y fragancias de campaña para regalar o comprar al mejor precio disponible.",
-  },
-];
-
-const structuredData = {
-  "@context": "https://schema.org",
-  "@type": "Store",
-  name: "Yanbal Cúcuta y Bogotá por WhatsApp",
-  description:
-    "Productos de belleza Yanbal C9 con descuento, perfumes, bloqueadores Total Block, maquillaje, regalables de Amor y Amistad, carrito de compras y asesoría por WhatsApp Business para Cúcuta y Bogotá.",
-  telephone: "+573026293535",
-  areaServed: [
-    { "@type": "City", name: "Cúcuta" },
-    { "@type": "City", name: "Bogotá" },
+const faq = [
+  [
+    "¿Hacen envíos a toda Colombia?",
+    "Sí. El pedido mínimo es de $50.000. El envío es gratis en Cúcuta y Bogotá; cuesta $14.000 en otros destinos y es gratis desde $150.000.",
   ],
-  paymentAccepted: ["Mercado Pago", "WhatsApp"],
-  url: "https://yanbal-promos-cucuta-bogota.vercel.app/",
-  sameAs: [`https://wa.me/${whatsappNumber}`],
-  image: "/yanbal-banner.webp",
-  knowsAbout: [
-    "productos de belleza Yanbal",
-    "bloqueadores Yanbal Total Block",
-    "perfumes Yanbal",
-    "maquillaje Yanbal",
-    "regalos Amor y Amistad Yanbal",
+  [
+    "¿Puedo comprar desde Cúcuta o Bogotá?",
+    "Sí. El envío no tiene costo en Cúcuta y Bogotá. Elige tu municipio para confirmar el total antes del pago.",
   ],
-  department: [
-    {
-      "@type": "Store",
-      name: "Productos de belleza Yanbal en Cúcuta y Bogotá",
-    },
-    {
-      "@type": "Store",
-      name: "Bloqueadores Yanbal Total Block SPF",
-    },
-    {
-      "@type": "Store",
-      name: "Perfumes Yanbal femeninos y masculinos",
-    },
+  [
+    "¿Cómo pago?",
+    "Agrega tus productos al carrito, completa los datos de entrega y paga con los medios disponibles en Mercado Pago. Tu pedido se procesa cuando se aprueba el pago.",
   ],
-  makesOffer: [...loveAndFriendshipProducts, ...discountProducts, ...storefrontProducts]
-    .slice(0, 42)
-    .map((product) => ({
-      "@type": "Offer",
-      priceCurrency: "COP",
-      price: String(product.promo_price ?? product.price),
-      availability: "https://schema.org/InStock",
-      itemOffered: {
-        "@type": "Product",
-        name: `Yanbal ${product.name}`,
-        description:
-          product.promotion_detail ||
-          product.description ||
-          product.promotion ||
-          product.content ||
-          product.category,
-        category: product.category,
-        sku: product.sku,
-        image: product.image,
-      },
-    })),
-};
-
+  [
+    "¿Tengo que escribir por WhatsApp para comprar?",
+    "No. Puedes comprar directamente cuando el envío esté habilitado para tu ubicación. WhatsApp está disponible para asesoría y seguimiento.",
+  ],
+  [
+    "¿Qué sucede si un producto se agota?",
+    "Te contactaremos para ofrecerte un reemplazo o gestionar la devolución del valor correspondiente.",
+  ],
+];
 export default function Home() {
+  const discounts = [...products]
+    .filter((p) => p.discount > 0)
+    .sort((a, b) => b.discount - a.discount);
+  const featured = store.featuredProducts
+    .map((id) => products.find((p) => p.id === id))
+    .filter(Boolean);
+  const offers = [
+    ...new Map([...featured, ...discounts].map((p) => [p.id, p])).values(),
+  ].slice(0, 8);
   return (
-    <main>
+    <main className="shop-main">
+      <section className="shop-hero">
+        <div>
+          <p className="eyebrow">Tu rutina. Tu aroma. Tu momento.</p>
+          <h1>
+            Productos Yanbal
+            <br />
+            <em>en oferta</em>
+          </h1>
+          <p>Compra productos del catálogo y recibe tu pedido en Colombia.</p>
+          <p>
+            Perfumes, maquillaje, Total Block y cuidado personal con precios de
+            catálogo.
+          </p>
+          <ul className="hero-benefits">
+            <li>Envío gratis en Cúcuta y Bogotá</li>
+            <li>Envío gratis nacional desde $150.000</li>
+            <li>Pago seguro con Mercado Pago</li>
+            <li>Atención personalizada por WhatsApp</li>
+          </ul>
+          <div className="hero__actions">
+            <a className="button button--primary" href="/ofertas">
+              Ver ofertas
+            </a>
+            <a className="button button--ghost" href="/catalogo#buscar">
+              Buscar un producto
+            </a>
+          </div>
+          <small>{store.campaign.name} · Disponibilidad según campaña</small>
+        </div>
+        <img
+          src={store.campaign.banner}
+          alt="Selección de belleza Yanbal"
+          width="601"
+          height="700"
+          fetchPriority="high"
+        />
+      </section>
+      <section className="shop-section" id="descuentos">
+        <div className="section-heading">
+          <div>
+            <p className="eyebrow">Elige tu próximo favorito</p>
+            <h2>Ofertas destacadas</h2>
+          </div>
+          <a href="/ofertas">Ver todas las ofertas →</a>
+        </div>
+        <div className="shop-grid">
+          {offers.map((p) => (
+            <ProductCatalogCard product={p} key={p.id} />
+          ))}
+        </div>
+      </section>
+      <section className="shop-section">
+        <h2>Compra por categoría</h2>
+        <div className="category-grid">
+          {categories.map(([name, href, n]) => (
+            <a href={href} key={href}>
+              <small>{n}</small>
+              <strong>{name}</strong>
+              <span>Explorar →</span>
+            </a>
+          ))}
+        </div>
+      </section>
+      <section className="shop-section">
+        <h2>Productos destacados</h2>
+        <p>Una selección de perfumes, detalles y cuidado personal para ti.</p>
+        <div className="shop-grid">
+          {featured.slice(0, 6).map((p) => (
+            <ProductCatalogCard product={p} key={p.id} />
+          ))}
+        </div>
+      </section>
+      <section className="shop-section need-section" id="amor-amistad">
+        <h2>Compra según lo que buscas</h2>
+        <div>
+          {[
+            ["Quiero un perfume", "/perfumes-yanbal"],
+            ["Busco un regalo", "/regalos-yanbal"],
+            ["Quiero bloqueador", "/bloqueadores-total-block"],
+            ["Maquillaje", "/maquillaje-yanbal"],
+            ["Cuidado facial", "/cuidado-facial"],
+          ].map(([label, href]) => (
+            <a className="button button--ghost" href={href} key={href}>
+              {label} →
+            </a>
+          ))}
+        </div>
+      </section>
+      <section className="shop-section">
+        <div className="section-heading">
+          <div>
+            <p className="eyebrow">Decide con información</p>
+            <h2>Guías para elegir mejor</h2>
+          </div>
+          <a href="/guias">Ver todas las guías →</a>
+        </div>
+        <div className="trust-grid">
+          <a href="/guias/elegir-perfume">
+            <h3>Perfumes por ocasión →</h3>
+            <p>Compara formato, presupuesto y momento de uso.</p>
+          </a>
+          <a href="/guias/total-block">
+            <h3>¿Qué Total Block elegir? →</h3>
+            <p>Ordena las opciones por presentación y necesidad indicada.</p>
+          </a>
+          <a href="/guias/elegir-tono-maquillaje">
+            <h3>Cómo elegir tu tono →</h3>
+            <p>Reduce dudas antes de pedir maquillaje por internet.</p>
+          </a>
+          <a href="/guias/regalos-por-presupuesto">
+            <h3>Regalos por presupuesto →</h3>
+            <p>Ideas con precios actuales del catálogo.</p>
+          </a>
+        </div>
+      </section>
+      <section className="shop-section">
+        <h2>Compra con confianza</h2>
+        <div className="trust-grid">
+          {[
+            [
+              "Pago protegido",
+              "Tu pago se procesa directamente con Mercado Pago.",
+            ],
+            [
+              "Envíos claros",
+              "Gratis en Cúcuta y Bogotá; $14.000 en otros destinos y gratis desde $150.000.",
+            ],
+            [
+              "Atención personalizada",
+              "Estamos disponibles antes y después de comprar.",
+            ],
+            ["Productos Yanbal", "Productos del catálogo y campaña indicados."],
+          ].map(([h, p]) => (
+            <div key={h}>
+              <h3>{h}</h3>
+              <p>{p}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+      <section className="shop-section">
+        <h2>Ofertas de mayor descuento</h2>
+        <div className="shop-grid">
+          {discounts.slice(0, 4).map((p) => (
+            <ProductCatalogCard product={p} key={p.id} />
+          ))}
+        </div>
+      </section>
+      <section className="shop-section">
+        <h2>Belleza que llega a ti</h2>
+        <div className="trust-grid">
+          {[
+            [
+              "Cúcuta",
+              "Atención cercana para Cúcuta y áreas habilitadas.",
+              "/yanbal-cucuta",
+            ],
+            [
+              "Bogotá",
+              "Tu rutina de belleza, con entrega según zona.",
+              "/yanbal-bogota",
+            ],
+            [
+              "Colombia",
+              "Elige tu municipio y consulta el envío antes de pagar.",
+              "/yanbal-colombia",
+            ],
+          ].map(([h, p, url]) => (
+            <a href={url} key={url}>
+              <h3>{h} →</h3>
+              <p>{p}</p>
+            </a>
+          ))}
+        </div>
+      </section>
+      <section className="shop-section about-section">
+        <h2>¿Quién está detrás de la tienda?</h2>
+        {store.consultant.photo && (
+          <img
+            src={store.consultant.photo}
+            alt={store.consultant.name || "Tu asesora"}
+            width="180"
+            height="180"
+          />
+        )}
+        {store.consultant.name && <h3>{store.consultant.name}</h3>}
+        <p>
+          Somos una tienda de asesoría independiente. Te ayudamos a encontrar
+          productos Yanbal y recibir tu pedido en Colombia. Puedes contactarnos
+          directamente antes o después de comprar.
+        </p>
+        <a href="/contacto">Conoce cómo contactarnos →</a>
+      </section>
+      <section className="shop-section faq-section">
+        <h2>Preguntas frecuentes</h2>
+        {faq.map(([q, a]) => (
+          <details key={q}>
+            <summary>{q}</summary>
+            <p>{a}</p>
+          </details>
+        ))}
+        <AvailabilityNote />
+      </section>
+      <section className="catalog-cta" id="productos-definidos">
+        <a className="button button--primary" href="/catalogo">
+          Ver catálogo completo
+        </a>
+      </section>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@graph": [
+              {
+                "@type": "Organization",
+                name: store.name,
+                url: store.url,
+                telephone: `+${store.whatsapp}`,
+                areaServed: "CO",
+              },
+              {
+                "@type": "FAQPage",
+                mainEntity: faq.map(([name, text]) => ({
+                  "@type": "Question",
+                  name,
+                  acceptedAnswer: { "@type": "Answer", text },
+                })),
+              },
+            ],
+          }),
+        }}
       />
-
-      <section className="hero" aria-labelledby="hero-title">
-        <div className="hero__content">
-          <p className="eyebrow">Asesora Yanbal en Cúcuta y Bogotá</p>
-          <h1 id="hero-title">Productos Yanbal con descuento</h1>
-          <p className="hero__copy">
-            Soy tu asesora Yanbal. Aquí encuentras descuentos de campaña,
-            perfumes, bloqueadores solares Total Block, maquillaje, cuidado
-            facial, regalables de Amor y Amistad y productos del C9 para Cúcuta
-            y Bogotá. Agrega al carrito y confirma por WhatsApp Business o pago
-            en línea.
-          </p>
-          <div className="hero__actions" aria-label="Acciones principales">
-            <a
-              className="button button--primary button--whatsapp"
-              href={whatsappLink("productos Yanbal C9 en descuento", "consultar disponibilidad")}
-              target="_blank"
-              rel="noreferrer"
-              data-whatsapp-cta
-            >
-              Comprar por WhatsApp
-            </a>
-            <a className="button button--ghost" href="#descuentos">
-              Ver descuentos
-            </a>
-            <a className="button button--ghost" href="/perfumes-yanbal-cucuta-bogota">
-              Perfumes
-            </a>
-            <a className="button button--ghost" href="/bloqueadores-yanbal-cucuta-bogota">
-              Bloqueadores
-            </a>
-            <a className="button button--ghost" href="#amor-amistad">
-              Amor y Amistad
-            </a>
-            <a className="button button--ghost" href="/regalables">
-              Regalables
-            </a>
-            <a className="button button--ghost" href="/cucuta">
-              Yanbal Cúcuta
-            </a>
-            <a className="button button--ghost" href="/bogota">
-              Yanbal Bogotá
-            </a>
-            <a className="button button--ghost" href="#carrito" data-cart-open>
-              Carrito <span className="cart-count-inline" data-cart-count hidden>0</span>
-            </a>
-            <a
-              className="button button--ghost"
-              href={whatsappLink("productos Yanbal C9", "consultar disponibilidad")}
-              target="_blank"
-              rel="noreferrer"
-              data-whatsapp-cta
-            >
-              WhatsApp 302 629 3535
-            </a>
-          </div>
-        </div>
-      </section>
-
-      <section className="promo-strip" aria-label="Resumen de tienda">
-        <div>
-          <strong>Cúcuta y Bogotá</strong>
-          <span>asesoría local y pedidos por WhatsApp</span>
-        </div>
-        <div>
-          <strong>{storefrontProducts.length} productos</strong>
-          <span>tarjetas con recortes individuales</span>
-        </div>
-        <div>
-          <strong>Carrito activo</strong>
-          <span>arma el pedido antes de pagar o confirmar</span>
-        </div>
-      </section>
-
-      <section className="quick-order" id="pedir-whatsapp" aria-labelledby="quick-order-title">
-        <div className="section-heading">
-          <p className="eyebrow">Compra rápida</p>
-          <h2 id="quick-order-title">Elige lo que buscas y escribe directo</h2>
-          <p>
-            Si llegaste desde un anuncio, usa una de estas opciones para abrir
-            WhatsApp con el mensaje listo. Así puedo responderte con precio,
-            disponibilidad y entrega sin hacerte repetir la información.
-          </p>
-        </div>
-        <div className="quick-order__grid">
-          {quickIntentLinks.map((intent) => (
-            <article className="quick-order__card" key={intent.title}>
-              <h3>{intent.title}</h3>
-              <p>{intent.text}</p>
-              <a
-                className={intent.href.startsWith("http") ? "order-link" : "order-link order-link--ghost"}
-                href={intent.href}
-                target={intent.href.startsWith("http") ? "_blank" : undefined}
-                rel={intent.href.startsWith("http") ? "noreferrer" : undefined}
-                aria-label={
-                  intent.href.startsWith("http")
-                    ? `${intent.cta} por WhatsApp`
-                    : `Abrir ${intent.cta}`
-                }
-                data-whatsapp-cta={intent.href.startsWith("http") ? true : undefined}
-              >
-                {intent.cta}
-              </a>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section className="lead-panel" aria-labelledby="lead-title">
-        <div>
-          <p className="eyebrow">Respuesta rápida</p>
-          <h2 id="lead-title">Escríbeme y te confirmo la promo disponible</h2>
-          <p>
-            No tienes que pagar para preguntar. Si vienes del anuncio, abre
-            WhatsApp y dime qué buscas: perfume, bloqueador, maquillaje, regalo
-            o producto por código. Te confirmo disponibilidad, precio y entrega
-            para Cúcuta o Bogotá.
-          </p>
-        </div>
-        <div className="lead-panel__actions">
-          <a
-            className="button button--whatsapp"
-            href={whatsappLink("asesoría Yanbal por WhatsApp", "quiero revisar promociones")}
-            target="_blank"
-            rel="noreferrer"
-            data-whatsapp-cta
-          >
-            Escríbeme por WhatsApp
-          </a>
-          <a className="button button--ghost" href="#productos-definidos">
-            Ver productos antes
-          </a>
-          <ul className="lead-panel__proof" aria-label="Razones para escribir por WhatsApp">
-            <li>Mensaje listo para enviar.</li>
-            <li>Atención en Cúcuta y Bogotá.</li>
-            <li>Confirmo descuento antes de pagar.</li>
-          </ul>
-        </div>
-      </section>
-
-      <section className="answer-panel" aria-labelledby="answers-title">
-        <div className="section-heading">
-          <p className="eyebrow">Antes de escribir</p>
-          <h2 id="answers-title">Respuestas rápidas para comprar Yanbal</h2>
-          <p>
-            La idea es que compres con seguridad: puedes preguntar primero,
-            armar carrito, comparar productos y confirmar disponibilidad para
-            Cúcuta o Bogotá antes de pagar.
-          </p>
-        </div>
-        <div className="answer-grid">
-          {buyingQuestions.map((item) => (
-            <article key={item.question}>
-              <h3>{item.question}</h3>
-              <p>{item.answer}</p>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section className="catalog product-catalog featured-discounts" id="descuentos" aria-labelledby="discounts-title">
-        <div className="section-heading">
-          <p className="eyebrow">Descuentos Yanbal C9</p>
-          <h2 id="discounts-title">Ofertas destacadas para pedir hoy</h2>
-          <p>
-            Selección de productos con descuento de campaña para quienes buscan
-            Yanbal en Cúcuta y Bogotá: perfumes, maquillaje, cuidado personal y
-            detalles con precio claro para agregar al carrito.
-          </p>
-        </div>
-        <div className="highlight-product-grid">
-          {discountProducts.map((product) => (
-            <ProductCatalogCard key={product.id} product={product} featured />
-          ))}
-        </div>
-      </section>
-
-      <section className="catalog product-catalog love-section" id="amor-amistad" aria-labelledby="love-title">
-        <div className="section-heading">
-          <p className="eyebrow">Regalos Amor y Amistad</p>
-          <h2 id="love-title">Regalables Yanbal para sorprender</h2>
-          <p>
-            Esta selección reúne lo más buscado para Amor y Amistad: Ohm,
-            Collar Amira, Dulce Amor, Combo Soy Única, iluminador y bálsamo
-            labial. Son opciones fáciles de regalar en Cúcuta y Bogotá porque
-            combinan aroma, brillo, cuidado y presentación especial.
-          </p>
-          <div className="catalog-cta">
-            <a className="button button--ghost" href="/regalos-amor-amistad-colombia">
-              Ver regalos Amor y Amistad Colombia
-            </a>
-          </div>
-        </div>
-        <div className="love-callout">
-          <strong>Sección especial</strong>
-          <span>elige un regalo, agrégalo al carrito y confirma disponibilidad por WhatsApp.</span>
-        </div>
-        <div className="highlight-product-grid">
-          {loveAndFriendshipProducts.map((product) => (
-            <ProductCatalogCard key={product.id} product={product} featured />
-          ))}
-        </div>
-      </section>
-
-      <section className="business-panel" aria-labelledby="profile-title">
-        <div>
-          <p className="eyebrow">Quién soy</p>
-          <h2 id="profile-title">Tu asesora Yanbal por WhatsApp Business</h2>
-          <p>
-            Te ayudo a elegir perfumes, maquillaje, protección solar, cuidado
-            personal y regalos Yanbal según tu presupuesto, ocasión y
-            disponibilidad de campaña. Atiendo pedidos locales en Cúcuta y
-            Bogotá con acompañamiento directo antes y después de comprar.
-          </p>
-        </div>
-        <ul className="business-list" aria-label="Fortalezas del perfil de negocio">
-          {businessProfile.map((item) => (
-            <li key={item}>{item}</li>
-          ))}
-        </ul>
-      </section>
-
-      <section className="seo-panel seo-panel--topics" aria-labelledby="local-seo-title">
-        <div>
-          <p className="eyebrow">Belleza local</p>
-          <h2 id="local-seo-title">Productos de belleza, bloqueadores y perfumes en Cúcuta y Bogotá</h2>
-          <p>
-            Esta tienda está pensada para quienes buscan comprar Yanbal en
-            Cúcuta o Bogotá con precio claro, asesoría rápida y carrito de
-            compra. Aquí puedes encontrar perfumes Yanbal, bloqueadores solares
-            Total Block, maquillaje, cuidado facial, cuidado personal y regalos
-            de campaña.
-          </p>
-        </div>
-        <div className="copy-grid copy-grid--seo">
-          {localSeoTopics.map((topic) => (
-            <article key={topic.title}>
-              <h3>{topic.title}</h3>
-              <p>{topic.text}</p>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section className="security-panel" aria-labelledby="security-title">
-        <div>
-          <p className="eyebrow">Compra segura</p>
-          <h2 id="security-title">Tus datos están seguros y protegidos</h2>
-          <p>
-            Esta tienda usa HTTPS, cabeceras de seguridad y validaciones en el
-            servidor para proteger el pedido. Solo uso tus datos de contacto
-            para confirmar disponibilidad, entrega y soporte por WhatsApp
-            Business.
-          </p>
-        </div>
-        <ul className="security-list" aria-label="Protección de datos y pagos">
-          <li>No guardo datos de tarjeta en la página.</li>
-          <li>El pago en línea se procesa directamente en Mercado Pago.</li>
-          <li>WhatsApp se usa para confirmar disponibilidad y entrega.</li>
-          <li>Los catálogos del servidor requieren clave privada de administrador.</li>
-        </ul>
-      </section>
-
-      <section className="catalog product-catalog" id="productos-definidos" aria-labelledby="defined-products-title">
-        <div className="section-heading">
-          <p className="eyebrow">Todos los productos</p>
-          <h2 id="defined-products-title">Busca por código, producto o categoría</h2>
-          <p>
-            Aquí están los productos definidos del C9 con recorte individual,
-            código, página, presentación y precio de campaña. Agrega uno o
-            varios al carrito para enviar el pedido completo por WhatsApp o
-            pagar seguro por Mercado Pago.
-          </p>
-        </div>
-
-        <div className="product-tools" aria-label="Buscar productos Yanbal C9">
-          <label>
-            Buscar
-            <input
-              type="search"
-              placeholder="Ej. Dulce Amor, Ohm, 2040, collar"
-              data-product-search
-            />
-          </label>
-          <label>
-            Categoría
-            <select data-product-category-filter defaultValue="">
-              <option value="">Todas las categorías</option>
-              {storefrontCategories.map((category) => (
-                <option key={category} value={category}>
-                  {category}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
-
-        <div className="product-count" aria-live="polite">
-          <strong>{storefrontProducts.length}</strong> productos cargados con precio de campaña.
-        </div>
-
-        <div className="defined-product-groups">
-          {storefrontProductGroups.map((group, index) => (
-            <details className="defined-product-group" key={group.category} open={index < 2}>
-              <summary>
-                <span>{group.category}</span>
-                <strong>{group.products.length} productos</strong>
-              </summary>
-              <div className="defined-product-list">
-                {group.products.map((product) => (
-                  <ProductCatalogCard key={product.id} product={product} />
-                ))}
-              </div>
-            </details>
-          ))}
-        </div>
-      </section>
-
-      <section className="cart-anchor" id="carrito" aria-labelledby="cart-anchor-title">
-        <div className="section-heading">
-          <p className="eyebrow">Carrito</p>
-          <h2 id="cart-anchor-title">Arma el pedido antes de confirmar</h2>
-          <p>
-            Agrega varios productos, confirma tus datos y finaliza con pago
-            seguro por Mercado Pago. Si prefieres asesoría antes de pagar,
-            también puedes enviar el pedido por WhatsApp.
-          </p>
-        </div>
-        <button className="button button--primary" type="button" data-cart-open>
-          Ver carrito <span data-cart-count hidden>0</span>
-        </button>
-      </section>
-
-      <footer className="site-footer">
-        <p>Yanbal C9 Cúcuta y Bogotá</p>
-        <div className="footer-links">
-          <a href="/regalables">Regalables Amor y Amistad</a>
-          <a href="/cucuta">Yanbal Cúcuta</a>
-          <a href="/bogota">Yanbal Bogotá</a>
-          <a href="/regalos-amor-amistad-colombia">Regalos Colombia</a>
-          <a href="/perfumes-yanbal-cucuta-bogota">Perfumes Yanbal</a>
-          <a href="/bloqueadores-yanbal-cucuta-bogota">Bloqueadores Yanbal</a>
-          <a href="/catalogo">Catálogo separado</a>
-          <a
-            href={whatsappLink("productos Yanbal C9", "consultar disponibilidad")}
-            target="_blank"
-            rel="noreferrer"
-            data-whatsapp-cta
-          >
-            Pedir por WhatsApp Business
-          </a>
-        </div>
-      </footer>
-
-      <CartExperience />
     </main>
   );
 }

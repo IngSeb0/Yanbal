@@ -1,128 +1,186 @@
 (() => {
-  if (window.__yanbalConversionTracking) {
-    return;
-  }
+  if (window.__yanbalConversionTracking) return;
   window.__yanbalConversionTracking = true;
-
-  const googleAdsCheckoutConversion = "AW-18340615060/2pBzCITFmOYcEJSnvqlE";
-  const googleAdsWhatsAppConversion = "AW-18340615060/JBeHCK6u3ukcEJSnvqlE";
-
-  function hasGtag() {
-    return typeof window.gtag === "function";
-  }
-
-  function isWhatsAppUrl(value) {
+  const consentKey = "yanbal_analytics_consent";
+  const get = (k, fallback = null) => {
     try {
-      const url = new URL(value, window.location.href);
-      return url.hostname === "wa.me" || url.hostname === "api.whatsapp.com";
+      return JSON.parse(localStorage.getItem(k)) ?? fallback;
     } catch {
-      return false;
+      return fallback;
+    }
+  };
+  const set = (k, v) => {
+    try {
+      localStorage.setItem(k, JSON.stringify(v));
+    } catch {
+      /* Optional storage or analytics must not block shopping. */
+    }
+  };
+  window.dataLayer = window.dataLayer || [];
+  window.gtag =
+    window.gtag ||
+    function () {
+      window.dataLayer.push(arguments);
+    };
+  window.gtag("consent", "default", {
+    analytics_storage: "denied",
+    ad_storage: "denied",
+    ad_user_data: "denied",
+    ad_personalization: "denied",
+  });
+  // Payment access credentials must never reach tags or page_location.
+  const url = new URL(location.href);
+  const orderId = url.searchParams.get("orderId");
+  const access = new URLSearchParams(url.hash.slice(1)).get("access");
+  if (orderId && access) {
+    try {
+      sessionStorage.setItem("yanbal_order_" + orderId, access);
+    } catch {
+      /* Optional storage or analytics must not block shopping. */
     }
   }
-
-  function eventValue(value) {
-    const number = Number(value || 0);
-    return Number.isFinite(number) && number > 0 ? number : undefined;
+  if (url.pathname.startsWith("/pedido/") || url.pathname === "/gracias") {
+    window.yanbalReturn = {
+      orderId,
+      paymentId: url.searchParams.get("payment_id"),
+      accessToken: access,
+    };
+    history.replaceState(null, "", url.pathname);
   }
-
-  function trackConversion(params = {}) {
-    if (!hasGtag()) {
-      return Promise.resolve(false);
+  let loaded = false;
+  const sessionAttributionKey = "yanbal_attribution";
+  function attribution() {
+    if (!window.yanbalAnalyticsAllowed()) return {};
+    let saved = {};
+    try {
+      saved = JSON.parse(sessionStorage.getItem(sessionAttributionKey) || "{}");
+    } catch {
+      /* Optional storage or analytics must not block shopping. */
     }
-
-    const sendTo = params.sendTo || googleAdsCheckoutConversion;
-
-    return new Promise((resolve) => {
-      let done = false;
-      const finish = () => {
-        if (done) return;
-        done = true;
-        resolve(true);
+    for (const key of [
+      "utm_source",
+      "utm_medium",
+      "utm_campaign",
+      "utm_content",
+      "utm_term",
+      "gclid",
+    ]) {
+      if (url.searchParams.get(key))
+        saved[key] = url.searchParams.get(key).slice(0, 180);
+    }
+    try {
+      sessionStorage.setItem(sessionAttributionKey, JSON.stringify(saved));
+    } catch {
+      /* Optional storage or analytics must not block shopping. */
+    }
+    return saved;
+  }
+  window.yanbalAnalyticsAllowed = () => get(consentKey) === true;
+  window.yanbalAttribution = attribution;
+  function loadTags() {
+    if (loaded || !window.yanbalAnalyticsAllowed()) return;
+    loaded = true;
+    window.gtag("consent", "update", {
+      analytics_storage: "granted",
+      ad_storage: "granted",
+      ad_user_data: "denied",
+      ad_personalization: "denied",
+    });
+    const script = (src) => {
+      const s = document.createElement("script");
+      s.src = src;
+      s.async = true;
+      document.head.append(s);
+    };
+    window.dataLayer.push({ "gtm.start": Date.now(), event: "gtm.js" });
+    script("https://www.googletagmanager.com/gtm.js?id=GTM-NBHK5MMR");
+    script("https://www.googletagmanager.com/gtag/js?id=AW-18340615060");
+    window.gtag("js", new Date());
+    window.gtag("config", "AW-18340615060");
+    // GA4 routing remains owned by the retained GTM container; verify its published configuration.
+    window.va =
+      window.va ||
+      function () {
+        (window.vaq = window.vaq || []).push(arguments);
       };
-
-      window.setTimeout(finish, 650);
+    script("/_vercel/insights/script.js");
+    attribution();
+  }
+  window.yanbalTrack = (event, ecommerce = {}) => {
+    if (!window.yanbalAnalyticsAllowed()) return false;
+    window.dataLayer.push({ ecommerce: null });
+    window.dataLayer.push({ event, ecommerce });
+    // Preserve the existing Ads checkout/lead goals. These are not purchase events.
+    const adsGoal =
+      event === "begin_checkout"
+        ? "AW-18340615060/2pBzCITFmOYcEJSnvqlE"
+        : event === "whatsapp_click"
+          ? "AW-18340615060/JBeHCK6u3ukcEJSnvqlE"
+          : null;
+    if (adsGoal)
       window.gtag("event", "conversion", {
-        send_to: sendTo,
+        send_to: adsGoal,
         currency: "COP",
-        value: eventValue(params.value),
-        transaction_id: params.transactionId || `WA-${Date.now()}`,
-        event_callback: finish,
+        ...(Number.isFinite(ecommerce.value) ? { value: ecommerce.value } : {}),
         event_timeout: 650,
       });
-    });
-  }
-
-  window.yanbalTrackBeginCheckout = function yanbalTrackBeginCheckout({
-    cart = [],
-    total = 0,
-    orderId,
-    payment = "whatsapp",
-  } = {}) {
-    if (!hasGtag()) {
-      return Promise.resolve(false);
-    }
-
-    const items = cart.map((item) => ({
-      item_id: item.code || item.id,
-      item_name: item.name,
-      item_category: item.category,
-      price: item.price,
-      quantity: item.quantity,
-    }));
-
-    window.gtag("event", "begin_checkout", {
-      currency: "COP",
-      value: Number(total || 0),
-      transaction_id: orderId,
-      payment_type: payment === "mercadopago" ? "Mercado Pago" : "WhatsApp",
-      items,
-    });
-
-    return trackConversion({
-      sendTo: payment === "whatsapp" ? googleAdsWhatsAppConversion : googleAdsCheckoutConversion,
-      value: total,
-      transactionId: orderId,
-    });
+    if (event === "whatsapp_click")
+      window.gtag("event", "generate_lead", { method: "WhatsApp" });
+    return true;
   };
-
-  window.yanbalTrackWhatsAppLead = function yanbalTrackWhatsAppLead(label = "WhatsApp") {
-    if (!hasGtag()) {
-      return Promise.resolve(false);
+  window.yanbalTrackBeginCheckout = ({ cart = [], total = 0 } = {}) =>
+    Promise.resolve(
+      window.yanbalTrack("begin_checkout", {
+        currency: "COP",
+        value: total,
+        items: cart.map((l) => ({
+          item_id: l.sku || l.code || l.id,
+          item_name: l.name,
+          item_category: l.category,
+          price: l.price,
+          quantity: l.quantity,
+        })),
+      }),
+    );
+  window.yanbalTrackWhatsAppLead = () =>
+    Promise.resolve(
+      window.yanbalTrack("whatsapp_click", { method: "WhatsApp" }),
+    );
+  document.addEventListener("click", (e) => {
+    const button = e.target.closest("[data-consent]");
+    if (button) {
+      const yes = button.dataset.consent === "yes";
+      set(consentKey, yes);
+      document.querySelector("[data-consent-banner]").hidden = true;
+      if (yes) loadTags();
+      else {
+        window.gtag("consent", "update", {
+          analytics_storage: "denied",
+          ad_storage: "denied",
+          ad_user_data: "denied",
+          ad_personalization: "denied",
+        });
+        try {
+          sessionStorage.removeItem(sessionAttributionKey);
+        } catch {
+          /* Optional storage or analytics must not block shopping. */
+        }
+      }
+      window.dispatchEvent(new Event("yanbal-consent-changed"));
     }
-
-    window.gtag("event", "generate_lead", {
-      method: "WhatsApp",
-      event_category: "WhatsApp",
-      event_label: label,
-      page_location: window.location.href,
-    });
-
-    return trackConversion({
-      sendTo: googleAdsWhatsAppConversion,
-      transactionId: `WA-${Date.now()}`,
-    });
-  };
-
-  document.addEventListener("click", (event) => {
-    const link = event.target.closest("a[href]");
-    if (!link || !isWhatsAppUrl(link.href)) {
-      return;
+    if (e.target.closest("[data-consent-settings]"))
+      document.querySelector("[data-consent-banner]").hidden = false;
+    const link = e.target.closest("a[href]");
+    if (link) {
+      try {
+        if (["wa.me", "api.whatsapp.com"].includes(new URL(link.href).hostname))
+          window.yanbalTrackWhatsAppLead();
+      } catch {
+        /* Optional storage or analytics must not block shopping. */
+      }
     }
-
-    const label =
-      link.dataset.whatsappCta ||
-      link.getAttribute("aria-label") ||
-      link.textContent?.trim() ||
-      "WhatsApp";
-
-    if (!link.target || link.target === "_self") {
-      event.preventDefault();
-      window.yanbalTrackWhatsAppLead(label).finally(() => {
-        window.location.href = link.href;
-      });
-      return;
-    }
-
-    window.yanbalTrackWhatsAppLead(label);
   });
+  const banner = document.querySelector("[data-consent-banner]");
+  if (banner) banner.hidden = get(consentKey) !== null;
+  loadTags();
 })();

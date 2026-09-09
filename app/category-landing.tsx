@@ -1,4 +1,11 @@
-import { CartExperience, ProductCatalogCard, type StorefrontProduct, whatsappLink, whatsappNumber } from "./storefront-ui";
+/* eslint-disable @next/next/no-html-link-for-pages -- Static export intentionally uses full-page navigation without React hydration. */
+import {
+  CartExperience,
+  ProductCatalogCard,
+  type StorefrontProduct,
+  whatsappLink,
+  whatsappNumber,
+} from "./storefront-ui";
 
 type QuickPoint = {
   title: string;
@@ -32,7 +39,7 @@ function productOffer(product: StorefrontProduct) {
     "@type": "Offer",
     priceCurrency: "COP",
     price: String(price),
-    availability: "https://schema.org/InStock",
+    availability: "https://schema.org/BackOrder",
     itemOffered: {
       "@type": "Product",
       name: `Yanbal ${product.name}`,
@@ -75,7 +82,7 @@ export function CategoryLanding({
         { "@type": "City", name: "Cúcuta" },
         { "@type": "City", name: "Bogotá" },
       ],
-      paymentAccepted: ["Mercado Pago", "WhatsApp"],
+      paymentAccepted: ["Mercado Pago"],
       url,
       sameAs: [`https://wa.me/${whatsappNumber}`],
       makesOffer: products.slice(0, 24).map(productOffer),
@@ -119,7 +126,10 @@ export function CategoryLanding({
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
 
-      <section className="hero local-page-hero" aria-labelledby="category-title">
+      <section
+        className="hero local-page-hero"
+        aria-labelledby="category-title"
+      >
         <div className="hero__content">
           <p className="eyebrow">{eyebrow}</p>
           <h1 id="category-title">{title}</h1>
@@ -159,7 +169,10 @@ export function CategoryLanding({
         ))}
       </section>
 
-      <section className="seo-panel seo-panel--topics" aria-labelledby="local-title">
+      <section
+        className="seo-panel seo-panel--topics"
+        aria-labelledby="local-title"
+      >
         <div>
           <p className="eyebrow">SEO local</p>
           <h2 id="local-title">{localTitle}</h2>
@@ -175,7 +188,11 @@ export function CategoryLanding({
         </div>
       </section>
 
-      <section className="catalog product-catalog" id="productos" aria-labelledby="products-title">
+      <section
+        className="catalog product-catalog"
+        id="productos"
+        aria-labelledby="products-title"
+      >
         <div className="section-heading">
           <p className="eyebrow">Catálogo con carrito</p>
           <h2 id="products-title">{productHeading}</h2>

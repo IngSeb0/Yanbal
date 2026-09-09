@@ -1,298 +1,204 @@
 import crypto from "node:crypto";
-import { restInsert } from "../../lib/supabase-rest.js";
-import {
-  buildCartWhatsAppUrl,
-  currentPrice,
-  loadStoreProducts,
-  productMap,
-} from "../../lib/store-products.js";
-
-function json(response, statusCode, payload) {
-  response.statusCode = statusCode;
-  response.setHeader("Content-Type", "application/json; charset=utf-8");
-  response.setHeader("Cache-Control", "no-store");
-  response.end(JSON.stringify(payload));
+import { cartLines } from "../../lib/commerce-products.js";
+import { store } from "../../config/store.js";
+import { shippingQuote } from "../../lib/shipping.js";
+import { hasSupabaseConfig } from "../../lib/supabase-rest.js";
+import { digest, rpc, updateOrder } from "../../lib/orders.js";
+import { json, method, readJson } from "../../lib/http.js";
+export function validateCustomer(input = {}) {
+  const fields = {},
+    c = {};
+  for (const key of [
+    "name",
+    "phone",
+    "email",
+    "address",
+    "neighborhood",
+    "complement",
+    "reference",
+    "notes",
+    "departmentCode",
+    "cityCode",
+  ])
+    c[key] = String(input[key] || "")
+      .trim()
+      .slice(0, key === "notes" ? 500 : 240);
+  c.phone = c.phone.replace(/[\s()+.-]/g, "").replace(/^57(?=3\d{9}$)/, "");
+  if (c.name.length < 3) fields.name = "Escribe tu nombre completo.";
+  if (!/^3\d{9}$/.test(c.phone))
+    fields.phone = "Escribe un celular colombiano de 10 dígitos.";
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(c.email))
+    fields.email = "Revisa tu correo electrónico.";
+  if (c.address.length < 5) fields.address = "Escribe la dirección de entrega.";
+  if (!c.neighborhood) fields.neighborhood = "Escribe el barrio.";
+  if (!c.departmentCode) fields.departmentCode = "Selecciona el departamento.";
+  if (!c.cityCode) fields.cityCode = "Selecciona el municipio.";
+  return { customer: c, fields };
 }
-
-async function readJson(request, maxBytes = 64 * 1024) {
-  const chunks = [];
-  let size = 0;
-  for await (const chunk of request) {
-    size += chunk.length;
-    if (size > maxBytes) {
-      const error = new Error("payload_too_large");
-      error.code = "PAYLOAD_TOO_LARGE";
-      throw error;
-    }
-    chunks.push(chunk);
-  }
-  const body = Buffer.concat(chunks).toString("utf8");
-  return body ? JSON.parse(body) : {};
-}
-
-function originFromRequest(request) {
-  const proto = request.headers["x-forwarded-proto"] || "https";
-  const host = request.headers["x-forwarded-host"] || request.headers.host;
-  return host ? `${proto}://${host}` : "https://yanbal-promos-cucuta-bogota.vercel.app";
-}
-
-function cleanText(value, fallback = "") {
-  return String(value || fallback).trim().slice(0, 240);
-}
-
-function orderId() {
-  return `YAN-${Date.now().toString(36).toUpperCase()}-${crypto
-    .randomUUID()
-    .slice(0, 4)
-    .toUpperCase()}`;
-}
-
-async function persistOrder(order, items) {
+export default async function handler(req, res) {
+  if (!method(req, res, "POST")) return;
+  let input, items, customer, quote, subtotal;
   try {
-    await restInsert("orders", order, { service: true });
-    await restInsert("order_items", items, { service: true });
-    return true;
-  } catch {
-    try {
-      await restInsert("orders", order, { service: false });
-      await restInsert("order_items", items, { service: false });
-      return true;
-    } catch {
-      return false;
-    }
+    input = await readJson(req);
+    const validation = validateCustomer(input.customer);
+    if (Object.keys(validation.fields).length)
+      return json(res, 400, {
+        ok: false,
+        error: "Revisa los datos de entrega.",
+        fields: validation.fields,
+      });
+    customer = validation.customer;
+    items = cartLines(input.items);
+    subtotal = items.reduce((s, l) => s + l.price * l.quantity, 0);
+    quote = shippingQuote(customer.departmentCode, customer.cityCode, subtotal);
+    if (!quote.configured)
+      return json(res, 422, { ok: false, error: quote.message });
+    if (!quote.checkoutEligible)
+      return json(res, 422, {
+        ok: false,
+        error: quote.message,
+        minimumOrder: quote.minimumOrder,
+        amountToMinimum: quote.amountToMinimum,
+      });
+    if (input.acceptedTotal !== quote.total)
+      return json(res, 409, {
+        ok: false,
+        error: "El total cambió. Revisa el resumen actualizado antes de pagar.",
+      });
+    if (!/^[a-zA-Z0-9-]{20,80}$/.test(input.idempotencyKey || ""))
+      throw new Error("Actualiza el resumen e intenta nuevamente.");
+  } catch (e) {
+    return json(res, 400, { ok: false, error: e.message });
   }
-}
-
-async function mercadoPagoCheckout({ request, order, items, whatsappUrl }) {
-  const accessToken = process.env.MERCADO_PAGO_ACCESS_TOKEN;
-  if (!accessToken) {
-    return {
-      checkoutUrl: null,
-      whatsappUrl,
-      configured: false,
-      error: "Mercado Pago no está configurado en Vercel.",
-    };
-  }
-
-  const origin = originFromRequest(request);
-  const preference = {
-    items: items.map((item) => ({
-      id: item.product_id,
-      title: `${item.name} - Cod. ${item.sku || item.product_id}`,
-      quantity: item.quantity,
-      currency_id: "COP",
-      unit_price: item.price,
-    })),
-    back_urls: {
-      success: `${origin}/api/mercadopago/return?orderId=${encodeURIComponent(order.id)}&status=success`,
-      failure: `${origin}/api/mercadopago/return?orderId=${encodeURIComponent(order.id)}&status=failure`,
-      pending: `${origin}/api/mercadopago/return?orderId=${encodeURIComponent(order.id)}&status=pending`,
-    },
-    notification_url: `${origin}/api/mercadopago/webhook`,
-    auto_return: "approved",
-    external_reference: order.id,
-    metadata: {
-      order_id: order.id,
-      channel: "cart",
-      customer_phone: order.customer_phone,
-    },
-    statement_descriptor: "YANBAL",
-  };
-
-  try {
-    const mercadoPagoResponse = await fetch("https://api.mercadopago.com/checkout/preferences", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(preference),
-    });
-
-    if (!mercadoPagoResponse.ok) {
-      return {
-        checkoutUrl: null,
-        whatsappUrl,
-        configured: true,
-        error: "Mercado Pago no pudo crear el link de pago. Revisa el token o intenta de nuevo.",
-      };
-    }
-
-    const checkout = await mercadoPagoResponse.json();
-    const checkoutUrl =
-      process.env.MERCADO_PAGO_USE_SANDBOX === "true"
-        ? checkout.sandbox_init_point
-        : checkout.init_point;
-
-    if (!checkoutUrl) {
-      return {
-        checkoutUrl: null,
-        whatsappUrl,
-        configured: true,
-        error: "Mercado Pago no devolvió una URL de pago para este carrito.",
-      };
-    }
-
-    return {
-      checkoutUrl,
-      whatsappUrl,
-      preferenceId: checkout.id,
-      configured: true,
-    };
-  } catch {
-    return {
-      checkoutUrl: null,
-      whatsappUrl,
-      configured: true,
-      error: "Mercado Pago no respondió la solicitud de pago. Intenta nuevamente.",
-    };
-  }
-}
-
-export default async function handler(request, response) {
-  if (request.method !== "POST") {
-    response.setHeader("Allow", "POST");
-    json(response, 405, { ok: false, error: "Metodo no permitido" });
-    return;
-  }
-
-  let payload;
-  try {
-    payload = await readJson(request);
-  } catch (error) {
-    json(response, error.code === "PAYLOAD_TOO_LARGE" ? 413 : 400, {
+  if (
+    !process.env.MERCADO_PAGO_ACCESS_TOKEN ||
+    !process.env.MERCADO_PAGO_WEBHOOK_SECRET ||
+    !hasSupabaseConfig({ service: true })
+  )
+    return json(res, 503, {
       ok: false,
       error:
-        error.code === "PAYLOAD_TOO_LARGE"
-          ? "El pedido es demasiado grande. Reduce la cantidad de productos."
-          : "JSON no valido",
+        "El pago en línea no está disponible por el momento. Tu carrito se conserva.",
     });
-    return;
-  }
-
-  const products = await loadStoreProducts();
-  const productsById = productMap(products);
-  const cartItems = Array.isArray(payload.items) ? payload.items : [];
-  const validatedItems = cartItems
-    .map((item) => {
-      const product = productsById.get(String(item.id || ""));
-      const quantity = Math.max(1, Math.min(20, Number(item.quantity || 1)));
-      if (!product) {
-        return null;
+  try {
+    const attribution = {};
+    if (input.analyticsConsent === true)
+      for (const key of [
+        "utm_source",
+        "utm_medium",
+        "utm_campaign",
+        "utm_content",
+        "utm_term",
+        "gclid",
+      ]) {
+        if (typeof input.attribution?.[key] === "string")
+          attribution[key] = input.attribution[key].slice(0, 180);
       }
-      const price = currentPrice(product);
-      return {
-        product,
-        quantity,
-        price,
-        lineTotal: quantity * price,
-      };
-    })
-    .filter(Boolean);
-
-  if (!validatedItems.length) {
-    json(response, 400, { ok: false, error: "El carrito esta vacio" });
-    return;
-  }
-
-  const customer = {
-    name: cleanText(payload.customer?.name, "Cliente Yanbal"),
-    phone: cleanText(payload.customer?.phone),
-    email: cleanText(payload.customer?.email),
-    city: cleanText(payload.customer?.city, "Cúcuta o Bogotá"),
-    locality: cleanText(payload.customer?.locality),
-    neighborhood: cleanText(payload.customer?.neighborhood),
-    address: cleanText(payload.customer?.address),
-    notes: cleanText(payload.customer?.notes, payload.notes),
-  };
-
-  const id = orderId();
-  const cartForWhatsApp = validatedItems.map((item) => ({
-    name: item.product.name,
-    category: item.product.category,
-    sku: item.product.sku,
-    product_id: item.product.id,
-    quantity: item.quantity,
-    lineTotal: item.lineTotal,
-  }));
-  const whatsappUrl = buildCartWhatsAppUrl(cartForWhatsApp, customer, id);
-  const subtotal = validatedItems.reduce((sum, item) => sum + item.lineTotal, 0);
-  const payment = cleanText(payload.payment, "whatsapp") === "mercadopago" ? "mercadopago" : "whatsapp";
-
-  const order = {
-    id,
-    status: "nuevo",
-    customer_name: customer.name,
-    customer_phone: customer.phone || "Sin confirmar",
-    customer_email: customer.email,
-    city: customer.city,
-    locality: customer.locality,
-    neighborhood: customer.neighborhood,
-    address: customer.address,
-    notes: customer.notes,
-    payment,
-    subtotal,
-    shipping: 0,
-    total: subtotal,
-    channel: payment,
-    whatsapp_url: whatsappUrl,
-    metadata: {
-      source: "yanbal-c9-cart",
-      item_count: validatedItems.length,
-    },
-  };
-
-  const orderItems = validatedItems.map((item) => ({
-    order_id: id,
-    product_id: item.product.id,
-    sku: item.product.sku,
-    name: item.product.name,
-    size: "",
-    color: "",
-    quantity: item.quantity,
-    price: item.price,
-    image: item.product.image,
-    category: item.product.category,
-  }));
-
-  const persisted = await persistOrder(order, orderItems);
-
-  if (payment === "mercadopago") {
-    const checkout = await mercadoPagoCheckout({ request, order, items: orderItems, whatsappUrl });
-    if (!checkout.checkoutUrl) {
-      json(response, 503, {
+    const token = crypto.randomBytes(32).toString("hex"),
+      id = `YAN-${new Date().getUTCFullYear()}-${crypto.randomUUID().toUpperCase()}`;
+    const row = await rpc("yanbal_create_order", {
+      p_order: {
+        id,
+        access_hash: digest(token),
+        checkout_key: input.idempotencyKey,
+        customer: {
+          ...customer,
+          city: quote.city.name,
+          department: quote.city.department,
+        },
+        items,
+        subtotal,
+        shipping: quote.shipping,
+        total: quote.total,
+        attribution,
+      },
+    });
+    if (!row.created)
+      return json(res, 409, {
+        ok: false,
+        error:
+          "Este intento ya fue registrado. Revisa el estado de tu pedido antes de iniciar otro.",
+      });
+    const origin = process.env.SITE_URL || store.url;
+    const back = (status) =>
+      `${origin}/pedido/${status}?orderId=${id}#access=${token}`;
+    const mpItems = items.map((l) => ({
+      id: l.id,
+      title: `${l.name}${l.unitsPerPack > 1 ? " (paquete de 2)" : ""}`.slice(
+        0,
+        250,
+      ),
+      currency_id: "COP",
+      quantity: l.quantity,
+      unit_price: l.price,
+    }));
+    if (quote.shipping > 0)
+      mpItems.push({
+        id: "shipping",
+        title: "Envío estándar",
+        currency_id: "COP",
+        quantity: 1,
+        unit_price: quote.shipping,
+      });
+    const mp = await fetch("https://api.mercadopago.com/checkout/preferences", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${process.env.MERCADO_PAGO_ACCESS_TOKEN}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        items: mpItems,
+        external_reference: id,
+        back_urls: {
+          success: back("exitoso"),
+          pending: back("pendiente"),
+          failure: back("error"),
+        },
+        notification_url: `${origin}/api/mercadopago/webhook`,
+        auto_return: "approved",
+        payer: { email: customer.email },
+        metadata: { order_id: id },
+        statement_descriptor: "YANBAL",
+      }),
+      signal: AbortSignal.timeout(15000),
+    });
+    if (!mp.ok) {
+      await updateOrder(id, { payment_status: "preference_failed" });
+      return json(res, 502, {
         ok: false,
         orderId: id,
-        persisted,
-        total: subtotal,
-        checkoutUrl: null,
-        whatsappUrl: checkout.whatsappUrl,
-        preferenceId: null,
-        mercadoPagoConfigured: checkout.configured,
-        error: checkout.error || "No se pudo abrir Mercado Pago para este pedido.",
+        accessToken: token,
+        error:
+          "No pudimos abrir Mercado Pago. Puedes reintentar; tu carrito se conserva.",
       });
-      return;
     }
-
-    json(response, 200, {
+    const preference = await mp.json();
+    const checkoutUrl =
+      process.env.MERCADO_PAGO_USE_SANDBOX === "true"
+        ? preference.sandbox_init_point
+        : preference.init_point;
+    if (
+      !checkoutUrl ||
+      !/^https:\/\/([a-z0-9-]+\.)*mercadopago\.com(\.co)?\//i.test(checkoutUrl)
+    )
+      throw new Error("Invalid checkout URL");
+    await updateOrder(id, {
+      preference_id: String(preference.id),
+      status: "PAYMENT_PENDING",
+      payment_status: "pending",
+    });
+    json(res, 200, {
       ok: true,
       orderId: id,
-      persisted,
-      total: subtotal,
-      checkoutUrl: checkout.checkoutUrl,
-      whatsappUrl: checkout.whatsappUrl,
-      preferenceId: checkout.preferenceId || null,
-      mercadoPagoConfigured: checkout.configured,
+      accessToken: token,
+      checkoutUrl,
+      total: quote.total,
     });
-    return;
+  } catch {
+    json(res, 503, {
+      ok: false,
+      error:
+        "No pudimos preparar el pago de forma segura. Tu carrito se conserva; revisa el estado si ya abriste Mercado Pago.",
+    });
   }
-
-  json(response, 200, {
-    ok: true,
-    orderId: id,
-    persisted,
-    total: subtotal,
-    checkoutUrl: null,
-    whatsappUrl,
-  });
 }

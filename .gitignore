@@ -37,5 +37,6 @@ yarn-error.log*
 /dist/
 /vercel-dist/
 /.wrangler/
+/supabase/.temp/
 /outputs/
 /work/
