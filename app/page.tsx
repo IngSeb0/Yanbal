@@ -147,6 +147,10 @@ export default function Home() {
           <a href="/guias">Ver todas las guías →</a>
         </div>
         <div className="trust-grid">
+          <a href="/guias/regalo-ideal">
+            <h3>Encuentra tu regalo →</h3>
+            <p>Responde tres preguntas y explora detalles según tu presupuesto.</p>
+          </a>
           <a href="/guias/combinar-perfumes">
             <h3>Cómo combinar perfumes →</h3>
             <p>Prueba perfume y loción por capas con un método sencillo.</p>

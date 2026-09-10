@@ -180,7 +180,7 @@
       const method = share.dataset.contentShare;
       window.yanbalTrackContent("share", {
         method,
-        content_type: "guide",
+        content_type: share.dataset.contentType || "guide",
         item_id: share.dataset.contentId,
       });
       if (method === "native") {

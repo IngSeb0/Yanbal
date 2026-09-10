@@ -33,6 +33,15 @@ test("shareable fragrance guide is crawlable and links verified catalog products
   assert.match(html("/"), /\/guias\/combinar-perfumes/);
   assert.match(html("/guias"), /\/guias\/combinar-perfumes/);
 });
+test("gift quiz is crawlable, points to real products and keeps its static behavior", () => {
+  const s = html("/guias/regalo-ideal");
+  assert.match(s, /Encuentra tu regalo Yanbal/);
+  assert.match(s, /data-gift-quiz/);
+  assert.match(s, /data-content-share="whatsapp"/);
+  assert.match(s, /BreadcrumbList/);
+  assert.match(html("/"), /\/guias\/regalo-ideal/);
+  assert.match(html("/guias"), /\/guias\/regalo-ideal/);
+});
 test("469 independent HTML pages preserve SKU, image, metadata and truthful schema", () => {
   for (const p of products) {
     const s = html(productPath(p));

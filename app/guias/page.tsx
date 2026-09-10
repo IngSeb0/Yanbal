@@ -7,6 +7,7 @@ export const metadata: Metadata = {
 };
 
 const guides = [
+  ["/guias/regalo-ideal", "Encuentra tu regalo Yanbal", "Un quiz breve que ordena opciones reales por presupuesto y tipo de detalle."],
   ["/guias/combinar-perfumes", "Cómo combinar perfumes", "Método práctico para probar perfume y loción por capas sin atribuir notas no verificadas."],
   ["/guias/elegir-perfume", "Cómo elegir un perfume", "Compara ocasión, presentación y presupuesto sin atribuir características que el catálogo no confirma."],
   ["/guias/total-block", "Qué Total Block elegir", "Compara las presentaciones por las características indicadas en su nombre y ficha."],

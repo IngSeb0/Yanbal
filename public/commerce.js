@@ -71,6 +71,102 @@
         path(p),
     );
   const isAvailable = (p) => p.availability === "AVAILABLE_FOR_ORDER";
+  const giftProfile = {
+    perfume: /perfume|colonia/i,
+    joyeria: /joyer[ií]a|aretes|collar|pulsera|accesorio/i,
+    set: /set|combo|colecci[oó]n/i,
+    sorpresa: /./,
+  };
+  const giftRecipient = {
+    pareja: "para una pareja o alguien especial",
+    amistad: "para agradecer a una amistad",
+    familia: "para un familiar",
+    yo: "para ti",
+  };
+  const giftCandidates = () =>
+    products.filter(
+      (p) =>
+        isAvailable(p) &&
+        p.giftable &&
+        !p.promotionGroup &&
+        p.price >= 50000 &&
+        p.price <= 200000,
+    );
+  const giftCard = (p) => {
+    const article = document.createElement("article");
+    article.className = "gift-quiz-card";
+    article.innerHTML =
+      '<a href="' +
+      path(p) +
+      '"><img src="' +
+      escape(p.image) +
+      '" alt="' +
+      escape(p.name) +
+      '" width="400" height="480" loading="lazy"></a><div><small>' +
+      escape(p.category) +
+      " · Cód. " +
+      escape(p.sku) +
+      "</small><h3>" +
+      escape(p.name) +
+      "</h3><strong>" +
+      money(p.price) +
+      '</strong><button class="button button--ghost" type="button" data-add-to-cart="' +
+      escape(p.id) +
+      '" data-gift-quiz-result="' +
+      escape(p.id) +
+      '">Agregar al carrito</button></div>';
+    return article;
+  };
+  document.addEventListener("submit", (event) => {
+    const form = event.target.closest("[data-gift-quiz]");
+    if (!form) return;
+    event.preventDefault();
+    const answers = new FormData(form);
+    const budget = Number(answers.get("budget"));
+    const interest = String(answers.get("interest") || "sorpresa");
+    const recipient = String(answers.get("recipient") || "pareja");
+    const profile = giftProfile[interest] || giftProfile.sorpresa;
+    const ranked = giftCandidates()
+      .filter((p) => p.price <= budget)
+      .filter((p) => profile.test(p.category + " " + p.name))
+      .sort((a, b) => b.price - a.price);
+    const chosen = (ranked.length
+      ? ranked
+      : giftCandidates().filter((p) => p.price <= budget)
+    ).slice(0, 4);
+    const results = $("[data-gift-quiz-results]");
+    const cards = $("[data-gift-quiz-cards]");
+    const heading = $("[data-gift-quiz-title]");
+    const summary = $("[data-gift-quiz-summary]");
+    const shipping = $("[data-gift-quiz-shipping]");
+    if (!results || !cards || !heading || !summary || !shipping) return;
+    cards.replaceChildren(...chosen.map(giftCard));
+    heading.textContent = "Ideas " + (giftRecipient[recipient] || "para regalar");
+    summary.textContent = chosen.length
+      ? "Estas opciones corresponden a productos disponibles en el catálogo hasta " + money(budget) + "."
+      : "No encontramos una opción en ese rango. Revisa el catálogo o consulta por WhatsApp.";
+    shipping.textContent =
+      budget >= 150000
+        ? "Envío nacional gratis desde $150.000. Cúcuta y Bogotá tienen envío gratis sin mínimo adicional."
+        : "Pedido mínimo $50.000. Cúcuta y Bogotá tienen envío gratis; en otros destinos el envío se confirma en checkout y es gratis desde $150.000.";
+    results.hidden = false;
+    results.scrollIntoView({ behavior: "smooth", block: "start" });
+    window.yanbalTrackContent?.("gift_quiz_complete", {
+      content_type: "gift_quiz",
+      budget,
+      recipient,
+      interest,
+      result_count: chosen.length,
+    });
+  });
+  document.addEventListener("click", (event) => {
+    const result = event.target.closest("[data-gift-quiz-result]");
+    if (result)
+      window.yanbalTrackContent?.("gift_quiz_result_click", {
+        content_type: "gift_quiz",
+        item_id: result.dataset.giftQuizResult,
+      });
+  });
   const legacy = read("yanbal_cart_v1", []);
   let stored = read("yanbal_cart_v2", null);
   let cart =

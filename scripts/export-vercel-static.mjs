@@ -40,6 +40,7 @@ for (const d of directories) {
   }
 }
 routes.push(
+  "/guias/regalo-ideal",
   "/guias/combinar-perfumes",
   "/guias/elegir-perfume",
   "/guias/total-block",

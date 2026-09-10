@@ -29,7 +29,7 @@ export default function RootLayout({
     <html lang="es-CO">
       <head>
         <script src="/conversion-tracking.js" defer />
-        <script src="/commerce.js" defer />
+        <script src="/commerce.js?v=quiz-regalos-1" defer />
       </head>
       <body>
         <a className="skip-link" href="#main-content">
