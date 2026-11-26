@@ -20,12 +20,13 @@ export function story(slug, image, items) {
     gallery: `<section class="show-content show-story" id="galeria" aria-labelledby="story-title">
     <h2 id="story-title">${heading}</h2>
     <div class="show-carousel" data-carousel role="group" aria-label="${heading}" tabindex="0">
+    <div class="show-controls" hidden><button type="button" data-prev aria-label="Anterior">←</button><div data-dots>${slides.map(([title], index) => `<button type="button" data-slide="${index}" aria-label="${title}">${index + 1}</button>`).join('')}</div><button type="button" data-next aria-label="Siguiente">→</button><button type="button" data-preview>Ver giro 3D</button><output data-count></output></div>
     <div class="show-rail" data-rail>${slides.map(([title, text, photo], index) => `<figure class="show-slide">
     <img src="${image(photo,950)}" alt="" width="950" height="610" loading="lazy">
     <figcaption><span>0${index + 1} / 0${slides.length}</span><h3>${title}</h3><p>${text}</p>
     ${isStation ? `<a class="show-button" data-pick="${title}" href="#solicitud">Elegir ${slug==='automotriz'?'este servicio':slug==='estetica'?'este ritual':'este tratamiento'}</a>` : ''}
     ${slug==='inmobiliaria' ? '<button type="button" data-expand>Ampliar foto</button>' : ''}</figcaption></figure>`).join('')}</div>
-    <div class="show-controls" hidden><button type="button" data-prev aria-label="Anterior">←</button><div data-dots>${slides.map(([title], index) => `<button type="button" data-slide="${index}" aria-label="${title}">${index + 1}</button>`).join('')}</div><button type="button" data-next aria-label="Siguiente">→</button></div>
+
     </div>
     ${slug==='inmobiliaria' ? '<dialog data-property-gallery aria-label="Fotografía ampliada"><img alt="Ambiente del inmueble de ejemplo" width="950" height="610"><div class="brand-dialog-controls"><button data-image-prev type="button">Anterior</button><span data-image-count aria-live="polite"></span><button data-image-next type="button">Siguiente</button><form method="dialog"><button autofocus>Cerrar</button></form></div></dialog>' : ''}
     </section>`,
