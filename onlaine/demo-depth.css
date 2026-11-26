@@ -1,0 +1,32 @@
+@media (prefers-reduced-motion:no-preference){
+  .showcase{--scene-x:8deg;--scene-y:-14deg;--scene-z:22px;--tilt:1}
+  .theme-restaurante{--scene-x:0deg;--scene-y:-9deg;--scene-z:55px;--tilt:.55}
+  .theme-veterinaria{--scene-x:14deg;--scene-y:10deg;--scene-z:35px}
+  .theme-estetica{--scene-x:-10deg;--scene-y:0deg;--scene-z:20px;--tilt:.65}
+  .theme-inmobiliaria{--scene-x:0deg;--scene-y:15deg;--scene-z:38px}
+  .theme-limpieza{--scene-x:15deg;--scene-y:-3deg;--scene-z:28px}
+  .theme-automotriz{--scene-x:4deg;--scene-y:-17deg;--scene-z:42px}
+  .brand-media{perspective:1000px}
+  .brand-media>img{
+    transform-origin:center;backface-visibility:hidden;
+    animation:scene-depth .8s cubic-bezier(.18,.7,.25,1) both;
+    transition:transform .35s cubic-bezier(.2,.7,.2,1);
+    transform:rotateX(calc(var(--tilt-x,0deg) * var(--tilt))) rotateY(calc(var(--tilt-y,0deg) * var(--tilt)));
+  }
+  .theme-restaurante .brand-media{overflow:hidden}
+  .theme-veterinaria .brand-media img+img{animation-delay:.12s;--scene-y:-12deg}
+  .show-slide.is-current img{transform-origin:center;animation:gallery-depth .38s ease-out both}
+  .show-slide.is-current figcaption{animation:caption-depth .36s ease-out both}
+}
+@keyframes scene-depth{
+  from{opacity:.55;scale:.96;rotate:1 1 0 var(--scene-y);translate:0 12px var(--scene-z)}
+  to{opacity:1;scale:1;rotate:1 1 0 0deg;translate:0 0 0}
+}
+@keyframes gallery-depth{
+  from{opacity:.65;transform:perspective(1150px) rotateX(var(--scene-x)) rotateY(var(--scene-y)) translateZ(-34px)}
+  to{opacity:1;transform:perspective(1150px) rotateX(0deg) rotateY(0deg) translateZ(0)}
+}
+@keyframes caption-depth{
+  from{opacity:.65;transform:perspective(1000px) rotateX(-7deg) translateZ(-18px)}
+  to{opacity:1;transform:perspective(1000px) rotateX(0) translateZ(0)}
+}

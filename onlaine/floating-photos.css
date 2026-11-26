@@ -1,0 +1,32 @@
+/* Editorial photo compositions. Each layout keeps its own framing and motion. */
+.show-hero .brand-media{--photo-x:9deg;--photo-y:-24deg;--photo-roll:-8deg;--travel:1rem;position:relative;isolation:isolate;perspective:1050px;overflow:visible}
+.show-hero .floating-photo{position:absolute;z-index:2;width:clamp(108px,37%,235px);margin:0;padding:.45rem .45rem 0;background:#fff9ee;color:#282623;box-shadow:0 1.6rem 2.5rem #17140f50;transform:rotate(var(--photo-roll));transform-style:preserve-3d;inset:auto -.35rem 3% auto}
+.show-hero .floating-photo img{display:block;width:100%;height:auto;aspect-ratio:.92;object-fit:cover;border-radius:0;transform:none;animation:none}
+.floating-photo figcaption{font:600 clamp(.62rem,1.1vw,.8rem)/1.25 "Instrument Sans",sans-serif;padding:.55rem .2rem}
+.photo-motion{position:absolute;z-index:4;bottom:.65rem;left:.65rem;padding:.38rem .65rem!important;background:#161716ed!important;color:#fff9ee!important;border:1px solid #fff9ee!important;font-size:.78rem;font-weight:600;min-height:40px}
+.photo-motion:focus-visible{outline:2px solid white!important;outline-offset:3px}.photo-motion[hidden]{display:none}
+.theme-odontologia .show-hero{grid-template-columns:1fr 1fr}.theme-odontologia .brand-media{padding:0 9% 0 0;--photo-roll:7deg;--photo-x:-10deg}.theme-odontologia .brand-media>img{aspect-ratio:.88;object-position:54% center}.theme-odontologia .floating-photo{border-radius:1.1rem;inset:auto 0 10% auto}.theme-odontologia .floating-photo img{border-radius:.7rem}
+.theme-restaurante .show-hero{min-height:clamp(520px,53vw,720px)}.theme-restaurante .brand-media{isolation:auto;--photo-roll:-11deg;--photo-y:29deg;--travel:1.4rem}.theme-restaurante .floating-photo{width:clamp(120px,22vw,350px);inset:auto 9% 10% auto;padding:0;border-radius:50%;background:#201612;color:#fff0d9;border:4px solid #f1d8b8}.theme-restaurante .floating-photo img{aspect-ratio:1;border-radius:50%}.theme-restaurante .floating-photo figcaption{position:absolute;bottom:10%;left:10%;right:10%;background:#201612e8;text-align:center;border-radius:40px}.theme-restaurante .brand-media:after{z-index:1}.theme-restaurante .photo-motion{position:relative;inset:auto;margin-top:1rem;align-self:start;justify-self:start}
+.theme-veterinaria .brand-media{--photo-roll:9deg;--photo-y:-31deg;padding-bottom:2rem}.theme-veterinaria .floating-photo{width:32%;bottom:1%;right:12%;border-radius:1rem;background:#f2c261}.theme-veterinaria .floating-photo img{border-radius:.75rem;aspect-ratio:1.1}.theme-veterinaria .brand-media>img+img{transform:rotate(6deg)}
+.theme-estetica .show-hero{padding-bottom:5rem}.theme-estetica .brand-media{width:84%;margin-inline:auto;--photo-roll:-12deg;--photo-y:-29deg;--travel:1.2rem}.theme-estetica .floating-photo{inset:auto auto -8% -4%;width:29%;background:#ead7cc;padding:.55rem;border-radius:7rem 7rem 0 0}.theme-estetica .floating-photo img{border-radius:7rem 7rem 0 0;aspect-ratio:.72}.theme-estetica .photo-motion{left:auto;right:.65rem}.theme-estetica .brand-media>img{aspect-ratio:1.8}
+.theme-inmobiliaria .brand-media{--photo-roll:5deg;--photo-y:25deg;padding:0 7% 4% 0}.theme-inmobiliaria .floating-photo{right:0;bottom:13%;width:32%;border:1px solid #a9a191}.theme-inmobiliaria .floating-photo img{aspect-ratio:1.35;object-fit:cover}.theme-inmobiliaria .brand-feature{position:relative}.theme-inmobiliaria .photo-motion{inset:auto .65rem .35rem auto}
+.theme-limpieza .brand-media{--photo-roll:-10deg;--photo-y:26deg;padding:0 0 5% 8%}.theme-limpieza .floating-photo{inset:auto auto 5% 0;border:4px solid #d9ed72;padding:0;border-radius:4rem 0;background:#d9ed72}.theme-limpieza .floating-photo img{border-radius:3.8rem 0 0}.theme-limpieza .photo-motion{inset:auto .65rem .65rem auto}
+.theme-automotriz .show-hero{gap:0}.theme-automotriz .brand-media{--photo-roll:-7deg;--photo-y:-31deg;--travel:1.25rem}.theme-automotriz .floating-photo{width:42%;bottom:7%;right:6%;background:#24282b;color:#fff4e4;border-bottom:3px solid #f47a35}.theme-automotriz .floating-photo img{aspect-ratio:1.35;filter:saturate(.73)}
+@media(max-width:760px){.theme-odontologia .show-hero{grid-template-columns:1fr}.theme-odontologia .brand-media>img{aspect-ratio:1.2}.theme-estetica .brand-media{width:94%}.theme-automotriz .brand-media>img{height:auto;aspect-ratio:1.35}.theme-restaurante .show-hero{min-height:580px;align-content:end;padding-bottom:1.4rem}.theme-restaurante .floating-photo{inset:8% 8% auto auto;width:clamp(115px,31vw,190px)}.theme-restaurante .brand-media:after{background:linear-gradient(0deg,#201612 7%,#201612b8 50%,#20161228)}}
+@media(prefers-reduced-motion:no-preference){
+  .photo-playing .floating-photo{animation:photo-orbit 5.4s cubic-bezier(.38,0,.24,1) both}
+  .photo-playing .brand-media>img:first-child{animation:main-photo-lift 5.4s ease-in-out both}
+}
+@keyframes photo-orbit{
+  0%{transform:translate3d(12%,20%,0) rotateZ(calc(var(--photo-roll) + 12deg)) rotateY(35deg);opacity:.75}
+  28%{transform:translate3d(-12%,calc(var(--travel) * -1.6),60px) rotateZ(calc(var(--photo-roll) - 10deg)) rotateX(var(--photo-x)) rotateY(var(--photo-y));opacity:1}
+  63%{transform:translate3d(5%,calc(var(--travel) * -.65),28px) rotateZ(calc(var(--photo-roll) + 6deg)) rotateY(calc(var(--photo-y) * -.55))}
+  100%{transform:translate3d(0,0,0) rotateZ(var(--photo-roll)) rotateY(0deg)}
+}
+@keyframes main-photo-lift{
+  0%,100%{transform:translateZ(0) rotateY(0deg)}
+  35%{transform:translateZ(-14px) rotateY(calc(var(--photo-y) * -.18))}
+  67%{transform:translateZ(-3px) rotateY(calc(var(--photo-y) * .08))}
+}
+
+.theme-limpieza .photo-motion{left:auto;right:.65rem}
