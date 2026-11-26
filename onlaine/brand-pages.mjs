@@ -1,3 +1,5 @@
+import { signatureScene } from './signature-scenes.mjs';
+
 export const directions = {
   odontologia: {title:'Una consulta dental, paso a paso', intro:'En la primera visita revisamos tu salud oral, conversamos sobre tus dudas y definimos contigo cómo continuar.', nav:'Tratamientos', secondary:'Explorar tratamientos', flow:'Encuentra tu cita', steps:['Bienvenida y conversación','Valoración de salud oral','Opciones y próximos pasos'], note:'El equipo de esta clínica ficticia representa las funciones de recepción, odontología general y acompañamiento.'},
   restaurante: {title:'Cocina al fuego, hecha para compartir', intro:'Una carta de temporada para abrir el apetito y una mesa para quedarte un rato más.', nav:'El salón', secondary:'Reservar una mesa', flow:'Reserva una mesa', steps:['Elige una fecha','Indica cuántas personas vienen','Revisa tu solicitud de ejemplo'], note:'Los platos y precios son ilustrativos. Consulta ingredientes y alérgenos con el restaurante antes de pedir.'},
@@ -25,10 +27,11 @@ export function brandHero(slug, niche, cta, photo, image) {
   <div class="brand-copy"><p class="show-kicker">${niche}</p><h1>${direction.title}</h1><p class="brand-intro">${direction.intro}</p>
   ${slug === 'veterinaria' ? species + '<p data-species-note>Controles, vacunas y seguimiento para perros.</p>' : ''}
   ${slug === 'limpieza' ? spaces : ''}
-  <div class="brand-actions"><a class="show-button" href="#experiencia">${cta} <span aria-hidden="true">↗</span></a><a href="#${secondTarget}">${direction.secondary}</a></div></div>
+  <div class="brand-actions"><a class="show-button" href="#experiencia">${cta} <span aria-hidden="true">↗</span></a><a href="#${secondTarget}">${direction.secondary}</a><a class="scene-link" href="#escena-3d">Probar escena 3D <span aria-hidden="true">↓</span></a></div></div>
   <div class="brand-media"><img data-hero-photo src="${photo}" alt="" width="1200" height="850" fetchpriority="high">
   ${slug === 'veterinaria' ? `<img src="${image('photo-1514888286974-6c03e2ca1dba',480)}" alt="" width="480" height="440" loading="lazy">` : ''}
   ${slug === 'inmobiliaria' ? '<div class="brand-feature">Chapinero · 74 m² · Arriendo · $2.800.000/mes</div>' : ''}</div>
+  ${signatureScene(slug)}
   ${slug === 'inmobiliaria' ? propertyFilters : ''}</section>`;
 }
 

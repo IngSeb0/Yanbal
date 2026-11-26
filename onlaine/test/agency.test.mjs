@@ -22,6 +22,8 @@ test('all seven demos are built and excluded from indexing', async () => {
     assert.match(html, /data-choice/);
     assert.equal((html.match(/class="show-slide"/g) ?? []).length, ['odontologia','automotriz'].includes(demo.slug) ? 4 : 3);
     assert.match(html, /brand-copy/);
+    assert.match(html, /data-scene-button/);
+    assert.equal((html.match(/class="signature-layer layer-/g) ?? []).length, 3);
     assert.match(html, /id="visita"/);
     assert.match(html, /data-prev/);
     assert.match(html, /data-next/);
