@@ -1,15 +1,21 @@
-const reduceGalleryMotion = matchMedia('(prefers-reduced-motion: reduce)');
+const reducedGalleryMotion = matchMedia('(prefers-reduced-motion: reduce)');
 
 document.querySelectorAll('[data-carousel]').forEach((carousel) => {
   const slides = [...carousel.querySelectorAll('.show-slide')];
   const controls = carousel.querySelector('.show-controls');
   const dots = [...controls.querySelectorAll('[data-slide]')];
-  const preview = controls.querySelector('[data-preview]');
+  const playback = controls.querySelector('[data-gallery-playback]');
   const count = controls.querySelector('[data-count]');
   const rail = carousel.querySelector('[data-rail]');
+  const wraps = new WeakMap();
   let current = 0;
-  let tour;
+  let timer;
+  let inView = false;
+  let hovering = false;
+  let focused = false;
+  let paused = false;
   let touchStart;
+  let ignoreClickUntil = 0;
 
   function show(index) {
     current = (index + slides.length) % slides.length;
@@ -17,7 +23,31 @@ document.querySelectorAll('[data-carousel]').forEach((carousel) => {
       const relative = (position - current + slides.length) % slides.length;
       const slot = relative <= 1 ? relative : relative === slides.length - 1 ? -1 : 2;
       const active = position === current;
-      slide.dataset.slot = slot;
+      const previous = Number(slide.dataset.slot);
+      const movesBehind = !reducedGalleryMotion.matches && Math.abs(previous - slot) > 1 && previous !== 0 && slot !== 0;
+      if (movesBehind) {
+        const start = getComputedStyle(slide);
+        const startTransform = start.transform;
+        const startOpacity = start.opacity;
+        wraps.get(slide)?.cancel();
+        slide.classList.add('is-wrapping');
+        slide.dataset.slot = slot;
+        const finish = getComputedStyle(slide);
+        const animation = slide.animate([
+          {transform:startTransform, opacity:startOpacity},
+          {transform:'translate3d(0, 2%, -560px) rotateY(0deg)', opacity:.12, offset:.52},
+          {transform:finish.transform, opacity:finish.opacity},
+        ], {duration:780, easing:'cubic-bezier(.26,.02,.2,1)'});
+        wraps.set(slide, animation);
+        animation.onfinish = () => {
+          wraps.delete(slide);
+          slide.classList.remove('is-wrapping');
+        };
+      } else {
+        wraps.get(slide)?.cancel();
+        slide.classList.remove('is-wrapping');
+        slide.dataset.slot = slot;
+      }
       slide.classList.toggle('is-current', active);
       slide.querySelector('figcaption').inert = !active;
       dots[position].setAttribute('aria-current', String(active));
@@ -25,35 +55,57 @@ document.querySelectorAll('[data-carousel]').forEach((carousel) => {
     count.value = (current + 1) + ' / ' + slides.length;
   }
 
-  function stop() {
-    clearTimeout(tour);
-    tour = undefined;
-    preview.textContent = 'Ver giro 3D';
-    carousel.classList.remove('motion-preview');
+  function schedule() {
+    clearTimeout(timer);
+    if (!inView || hovering || focused || paused || document.hidden || reducedGalleryMotion.matches) return;
+    timer = setTimeout(() => {
+      show(current + 1);
+      schedule();
+    }, 4200);
+  }
+
+  function syncPlayback() {
+    playback.hidden = reducedGalleryMotion.matches;
+    playback.textContent = paused ? 'Reanudar' : 'Pausar';
+    playback.setAttribute('aria-label', paused ? 'Reanudar giro automÃ¡tico' : 'Pausar giro automÃ¡tico');
+    schedule();
   }
 
   function select(index) {
-    stop();
     show(index);
+    schedule();
   }
 
   carousel.classList.add('is-coverflow');
   controls.hidden = false;
+  rail.querySelector('.gallery-arrows').hidden = false;
   show(0);
-  controls.querySelector('[data-prev]').addEventListener('click', () => select(current - 1));
-  controls.querySelector('[data-next]').addEventListener('click', () => select(current + 1));
+  syncPlayback();
+
+  rail.querySelector('[data-prev]').addEventListener('click', () => select(current - 1));
+  rail.querySelector('[data-next]').addEventListener('click', () => select(current + 1));
   dots.forEach((dot, index) => dot.addEventListener('click', () => select(index)));
-  preview.addEventListener('click', () => {
-    if (tour) { stop(); return; }
-    preview.textContent = 'Detener giro';
-    carousel.classList.add('motion-preview');
-    let remaining = slides.length;
-    function advance() {
-      show(current + 1);
-      if (--remaining > 0) tour = setTimeout(advance, 900);
-      else tour = setTimeout(stop, 620);
-    }
-    advance();
+  playback.addEventListener('click', () => {
+    paused = !paused;
+    syncPlayback();
+  });
+  carousel.addEventListener('pointerenter', (event) => {
+    if (event.pointerType !== 'mouse') return;
+    hovering = true;
+    schedule();
+  });
+  carousel.addEventListener('pointerleave', (event) => {
+    if (event.pointerType !== 'mouse') return;
+    hovering = false;
+    schedule();
+  });
+  carousel.addEventListener('focusin', () => {
+    focused = carousel.matches(':focus-within') && Boolean(carousel.querySelector(':focus-visible'));
+    schedule();
+  });
+  carousel.addEventListener('focusout', (event) => {
+    focused = Boolean(event.relatedTarget && carousel.contains(event.relatedTarget) && event.relatedTarget.matches(':focus-visible'));
+    schedule();
   });
   carousel.addEventListener('keydown', (event) => {
     if (!['ArrowLeft','ArrowRight'].includes(event.key) || event.target.closest('dialog')) return;
@@ -61,20 +113,39 @@ document.querySelectorAll('[data-carousel]').forEach((carousel) => {
     select(current + (event.key === 'ArrowLeft' ? -1 : 1));
   });
   rail.addEventListener('click', (event) => {
+    if (performance.now() < ignoreClickUntil) return;
     const slide = event.target.closest('.show-slide');
-    if (slide && slide !== slides[current]) select(slides.indexOf(slide));
+    if (!slide) return;
+    paused = true;
+    syncPlayback();
+    if (slide !== slides[current]) select(slides.indexOf(slide));
   });
   rail.addEventListener('pointerdown', (event) => {
-    if (event.pointerType !== 'touch') return;
-    touchStart = {x:event.clientX, y:event.clientY};
+    if (event.pointerType !== 'touch' || event.target.closest('button,a')) return;
+    touchStart = {x:event.clientX,y:event.clientY};
   });
   rail.addEventListener('pointerup', (event) => {
     if (!touchStart) return;
     const dx = event.clientX - touchStart.x;
     const dy = event.clientY - touchStart.y;
     touchStart = undefined;
-    if (Math.abs(dx) > 35 && Math.abs(dx) > Math.abs(dy)) select(current + (dx > 0 ? -1 : 1));
+    if (Math.abs(dx) <= 35 || Math.abs(dx) <= Math.abs(dy)) return;
+    ignoreClickUntil = performance.now() + 250;
+    select(current + (dx > 0 ? -1 : 1));
   });
   rail.addEventListener('pointercancel', () => { touchStart = undefined; });
-  reduceGalleryMotion.addEventListener('change', stop);
+
+  const observer = new IntersectionObserver(([entry]) => {
+    inView = entry.isIntersecting;
+    schedule();
+  }, {threshold:.35});
+  observer.observe(rail);
+  document.addEventListener('visibilitychange', schedule);
+  reducedGalleryMotion.addEventListener('change', () => {
+    slides.forEach(slide => {
+      wraps.get(slide)?.cancel();
+      slide.classList.remove('is-wrapping');
+    });
+    syncPlayback();
+  });
 });
