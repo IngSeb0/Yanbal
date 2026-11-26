@@ -13,7 +13,7 @@ export function helixGallery(demos) {
     slug, name, photo: photographs[slug][round],
   })));
   return `<div class="helix-gallery" data-helix role="region" aria-label="Galería de demostraciones en espiral">
-    <p class="helix-hint">Arrastra de lado a lado o usa las flechas para recorrer la espiral.</p>
+    <p class="helix-hint">Arrastra o usa las flechas. Pulsa una foto para seleccionarla y detener el giro.</p>
     <div class="helix-stage" tabindex="0" aria-label="Carrusel. Usa las flechas izquierda y derecha y pulsa Intro para abrir la demo." data-helix-stage>
       <div class="helix-orbit">
         ${slides.map(({slug, name, photo}) => `<a class="helix-card" href="/demostraciones/${slug}" data-sector="${name}">
@@ -21,11 +21,10 @@ export function helixGallery(demos) {
           <span>${name}<b aria-hidden="true">↗</b></span>
         </a>`).join('')}
       </div>
+      <div class="helix-arrows" hidden><button type="button" data-prev aria-label="Foto anterior">‹</button><button type="button" data-next aria-label="Foto siguiente">›</button></div>
     </div>
     <div class="helix-toolbar" data-helix-toolbar hidden>
-      <button type="button" data-prev aria-label="Foto anterior">←</button>
       <button type="button" data-play>Pausar giro</button>
-      <button type="button" data-next aria-label="Foto siguiente">→</button>
       <a class="helix-open" data-active-link href="/demostraciones/odontologia">Abrir demo ↗</a>
       <output data-position aria-live="off"></output>
     </div>
