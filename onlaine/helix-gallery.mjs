@@ -14,6 +14,7 @@ export function helixGallery(demos) {
   })));
   return `<div class="helix-gallery" data-helix role="region" aria-label="Galería de demostraciones en espiral">
     <p class="helix-hint">Arrastra o usa las flechas. Pulsa una foto para seleccionarla y detener el giro.</p>
+    <div class="helix-mode" data-helix-mode hidden><button type="button" data-enable-motion>Activar animación 3D</button></div>
     <div class="helix-stage" tabindex="0" aria-label="Carrusel. Usa las flechas izquierda y derecha y pulsa Intro para abrir la demo." data-helix-stage>
       <div class="helix-orbit">
         ${slides.map(({slug, name, photo}) => `<a class="helix-card" href="/demostraciones/${slug}" data-sector="${name}">

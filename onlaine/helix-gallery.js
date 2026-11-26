@@ -6,6 +6,10 @@ document.querySelectorAll('[data-helix]').forEach((gallery) => {
   const stage = gallery.querySelector('[data-helix-stage]');
   const cards = [...gallery.querySelectorAll('.helix-card')];
   const arrows = gallery.querySelector('.helix-arrows');
+  const mode = gallery.querySelector('[data-helix-mode]');
+  const modeButton = gallery.querySelector('[data-enable-motion]');
+  let motionOverride = false;
+  const motionEnabled = () => fullMotion.matches || motionOverride;
   const toolbar = gallery.querySelector('[data-helix-toolbar]');
   const play = gallery.querySelector('[data-play]');
   const activeLink = gallery.querySelector('[data-active-link]');
@@ -60,7 +64,7 @@ document.querySelectorAll('[data-helix]').forEach((gallery) => {
 
   function run(time) {
     request = 0;
-    if (!visible || !fullMotion.matches || document.hidden) {
+    if (!visible || !motionEnabled() || document.hidden) {
       previousTime = 0;
       return;
     }
@@ -80,7 +84,7 @@ document.querySelectorAll('[data-helix]').forEach((gallery) => {
   }
 
   function wake() {
-    if (!request && visible && !document.hidden && fullMotion.matches && (travel || (playing && !hovered && !keyboardFocus) || (velocity && !hovered) || drag)) {
+    if (!request && visible && !document.hidden && motionEnabled() && (travel || (playing && !hovered && !keyboardFocus) || (velocity && !hovered) || drag)) {
       request = requestAnimationFrame(run);
     } else if (!request && !drag && (!playing || !visible)) {
       previousTime = 0;
@@ -94,8 +98,10 @@ document.querySelectorAll('[data-helix]').forEach((gallery) => {
   }
 
   function setMode() {
-    const enabled = fullMotion.matches;
+    const enabled = motionEnabled();
     gallery.classList.toggle('is-3d', enabled);
+    mode.hidden = fullMotion.matches;
+    modeButton.textContent = motionOverride ? 'Volver a la vista estática' : 'Activar animación 3D';
     toolbar.hidden = !enabled;
     arrows.hidden = !enabled;
     stage.tabIndex = enabled ? 0 : -1;
@@ -131,7 +137,7 @@ document.querySelectorAll('[data-helix]').forEach((gallery) => {
   activeLink.addEventListener('focus', () => { keyboardFocus = true; });
   activeLink.addEventListener('blur', () => { keyboardFocus = false; wake(); });
   stage.addEventListener('keydown', (event) => {
-    if (!fullMotion.matches || event.target !== stage) return;
+    if (!motionEnabled() || event.target !== stage) return;
     if (event.key === 'Enter') { activeLink.click(); return; }
     if (!['ArrowLeft','ArrowRight'].includes(event.key)) return;
     event.preventDefault();
@@ -139,7 +145,7 @@ document.querySelectorAll('[data-helix]').forEach((gallery) => {
   });
 
   stage.addEventListener('pointerdown', (event) => {
-    if (!fullMotion.matches || !event.isPrimary || event.button !== 0 || drag || event.target.closest('button')) return;
+    if (!motionEnabled() || !event.isPrimary || event.button !== 0 || drag || event.target.closest('button')) return;
     keyboardFocus = false;
     drag = {id:event.pointerId, x:event.clientX, y:event.clientY, last:event.clientX, time:event.timeStamp, moved:false};
     velocity = 0;
@@ -147,7 +153,7 @@ document.querySelectorAll('[data-helix]').forEach((gallery) => {
     wake();
   });
   stage.addEventListener('pointermove', (event) => {
-    if (!fullMotion.matches) return;
+    if (!motionEnabled()) return;
     if (!drag || drag.id !== event.pointerId) {
       hovered = event.pointerType === 'mouse' ? event.target.closest('.helix-card') : null;
       if (!travel) draw();
@@ -187,7 +193,7 @@ document.querySelectorAll('[data-helix]').forEach((gallery) => {
   stage.addEventListener('lostpointercapture', release);
   stage.addEventListener('pointerleave', () => { hovered = null; draw(); wake(); });
   stage.addEventListener('click', (event) => {
-    if (!fullMotion.matches || event.defaultPrevented || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    if (!motionEnabled() || event.defaultPrevented || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
     if (performance.now() < suppressClickUntil) { event.preventDefault(); return; }
     const card = event.target.closest('.helix-card');
     if (!card) return;
@@ -200,13 +206,22 @@ document.querySelectorAll('[data-helix]').forEach((gallery) => {
   window.addEventListener('scroll', () => {
     const change = window.scrollY - lastScroll;
     lastScroll = window.scrollY;
-    if (!visible || !fullMotion.matches || drag || keyboardFocus || hovered || !playing) return;
+    if (!visible || !motionEnabled() || drag || keyboardFocus || hovered || !playing) return;
     velocity = clamp(velocity + clamp(change, -100, 100) * .043, -10, 10);
     wake();
   }, {passive:true});
   document.addEventListener('visibilitychange', wake);
-  new ResizeObserver(() => { if (fullMotion.matches) { measure(); draw(); } }).observe(stage);
+  new ResizeObserver(() => { if (motionEnabled()) { measure(); draw(); } }).observe(stage);
   new IntersectionObserver(([entry]) => {visible = entry.isIntersecting; wake();}, {threshold:.1}).observe(stage);
-  fullMotion.addEventListener('change', setMode);
+  modeButton.addEventListener('click', () => {
+    motionOverride = !motionOverride;
+    if (motionOverride) setPlayback(true);
+    setMode();
+    if (motionOverride) stage.scrollIntoView({block:'center'});
+  });
+  fullMotion.addEventListener('change', () => {
+    motionOverride = false;
+    setMode();
+  });
   setMode();
 });

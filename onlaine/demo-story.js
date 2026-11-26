@@ -14,8 +14,12 @@ document.querySelectorAll('[data-carousel]').forEach((carousel) => {
   let hovering = false;
   let focused = false;
   let paused = false;
+  let motionOverride = false;
+  let hasAdvanced = false;
   let touchStart;
   let ignoreClickUntil = 0;
+
+  const motionEnabled = () => !reducedGalleryMotion.matches || motionOverride;
 
   function show(index) {
     current = (index + slides.length) % slides.length;
@@ -24,7 +28,7 @@ document.querySelectorAll('[data-carousel]').forEach((carousel) => {
       const slot = relative <= 1 ? relative : relative === slides.length - 1 ? -1 : 2;
       const active = position === current;
       const previous = Number(slide.dataset.slot);
-      const movesBehind = !reducedGalleryMotion.matches && Math.abs(previous - slot) > 1 && previous !== 0 && slot !== 0;
+      const movesBehind = motionEnabled() && Math.abs(previous - slot) > 1 && previous !== 0 && slot !== 0;
       if (movesBehind) {
         const start = getComputedStyle(slide);
         const startTransform = start.transform;
@@ -57,11 +61,12 @@ document.querySelectorAll('[data-carousel]').forEach((carousel) => {
 
   function schedule() {
     clearTimeout(timer);
-    if (!inView || hovering || focused || paused || document.hidden || reducedGalleryMotion.matches) return;
+    if (!inView || hovering || focused || paused || document.hidden || !motionEnabled()) return;
     timer = setTimeout(() => {
+      hasAdvanced = true;
       show(current + 1);
       schedule();
-    }, 4200);
+    }, hasAdvanced ? 4200 : 1200);
   }
 
   function syncPlayback() {
@@ -86,15 +91,22 @@ document.querySelectorAll('[data-carousel]').forEach((carousel) => {
   rail.querySelector('[data-next]').addEventListener('click', () => select(current + 1));
   dots.forEach((dot, index) => dot.addEventListener('click', () => select(index)));
   playback.addEventListener('click', () => {
-    paused = !paused;
+    const start = !motionEnabled() || paused;
+    if (!motionEnabled()) motionOverride = true;
+    paused = !start;
     syncPlayback();
+    if (start) {
+      hasAdvanced = true;
+      show(current + 1);
+      schedule();
+    }
   });
-  carousel.addEventListener('pointerenter', (event) => {
+  rail.addEventListener('pointerenter', (event) => {
     if (event.pointerType !== 'mouse') return;
     hovering = true;
     schedule();
   });
-  carousel.addEventListener('pointerleave', (event) => {
+  rail.addEventListener('pointerleave', (event) => {
     if (event.pointerType !== 'mouse') return;
     hovering = false;
     schedule();
@@ -142,6 +154,7 @@ document.querySelectorAll('[data-carousel]').forEach((carousel) => {
   observer.observe(rail);
   document.addEventListener('visibilitychange', schedule);
   reducedGalleryMotion.addEventListener('change', () => {
+    motionOverride = false;
     slides.forEach(slide => {
       wraps.get(slide)?.cancel();
       slide.classList.remove('is-wrapping');

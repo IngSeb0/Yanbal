@@ -5,3 +5,5 @@
 .helix-open{display:inline-flex;align-items:center;min-height:44px;padding-inline:.55rem;color:#e9c9ff;font-weight:650}.helix-open:focus-visible{outline:2px solid #e9c9ff;outline-offset:2px}
 
 .helix-arrows{position:absolute;inset:50% clamp(.4rem,2vw,1.2rem) auto;display:flex;justify-content:space-between;pointer-events:none;transform:translateY(-50%);z-index:5}.helix-arrows[hidden]{display:none}.helix-arrows button{pointer-events:auto;display:grid;place-items:center;width:46px;height:46px;padding:0;border:1px solid #bfa7d5;border-radius:50%;color:#fbf2ff;background:#211b2ce8;box-shadow:0 6px 20px #120f1b9e;font:500 1.9rem/1 sans-serif}.helix-arrows button:hover,.helix-arrows button:focus-visible{color:#24192e;background:#e9c9ff;outline-color:#e9c9ff}
+
+.helix-mode{padding:.7rem 1rem;border-top:1px solid #4a4057}.helix-mode[hidden]{display:none}.helix-mode button{min-height:44px;padding:.4rem .8rem;border:1px solid #bfa7d5;border-radius:.45rem;background:#31283c;color:#f6f1fa}
