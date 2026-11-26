@@ -45,3 +45,10 @@ test('each published photograph has a distinct source across the index and seven
   }
   assert.ok(seen.size >= 40);
 });
+
+test('portfolio publishes a 21-card helix linked to all seven demos', async () => {
+  await import('../build.mjs');
+  const html = await readFile('dist/index.html', 'utf8');
+  assert.equal((html.match(/class="helix-card"/g) ?? []).length, 21);
+  for (const {slug} of demos) assert.ok(html.includes('href="/demostraciones/' + slug + '"'));
+});

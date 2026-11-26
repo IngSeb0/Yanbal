@@ -22,23 +22,6 @@ const propertyPhotos = ['photo-1600585154340-be6161a56a0c','photo-1600596542815-
 const escape = value => String(value).replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
 const money = amount => new Intl.NumberFormat('es-CO', {style:'currency',currency:'COP',maximumFractionDigits:0}).format(amount);
 
-const tilePhotos = {
-  odontologia:'photo-1606811841689-23dfddce3e95',
-  restaurante:'photo-1559339352-11d035aa65de',
-  veterinaria:'photo-1517849845537-4d257902454a',
-  estetica:'photo-1544161515-4ab6ce6db874',
-  inmobiliaria:'photo-1560448204-e02f11c3d0e2',
-  limpieza:'photo-1563453392212-326f5e854473',
-  automotriz:'photo-1530046339160-ce3e530c7d2f',
-};
-
-export function gallery(demos) {
-  return demos.map(({slug,name}) => {
-    const [brand,,,cta] = examples[slug];
-    return `<li><a href="/demostraciones/${slug}" class="demo-tile"><img alt="" loading="lazy" width="640" height="420" src="${image(tilePhotos[slug],640)}"><span><small>${name}</small><strong>${brand}</strong><span>${cta} ↗</span></span></a></li>`;
-  }).join('');
-}
-
 const image = (photo,width) => `https://images.unsplash.com/${photo}?auto=format&fit=crop&w=${width}&q=76`;
 
 export function showcaseDemo({slug,name,images,contact,hours,location,sections}) {

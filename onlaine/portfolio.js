@@ -1,5 +1,4 @@
 const portfolioMotion = matchMedia('(prefers-reduced-motion: no-preference)');
-const precisePointer = matchMedia('(hover:hover) and (pointer:fine)');
 const stage = document.querySelector('.agency-stage');
 if (stage) {
   const button = stage.querySelector('button');
@@ -33,25 +32,4 @@ const reveal = new IntersectionObserver((entries) => {
     reveal.unobserve(target);
   });
 }, {threshold:.18});
-document.querySelectorAll('.demo-gallery li,.show-items article').forEach(box => reveal.observe(box));
-
-document.querySelectorAll('.demo-gallery li').forEach((box) => {
-  const tile = box.querySelector('a');
-  let frame = 0;
-  function reset() {
-    cancelAnimationFrame(frame);
-    tile.style.removeProperty('--tile-x');
-    tile.style.removeProperty('--tile-y');
-  }
-  box.addEventListener('pointermove', (event) => {
-    if (!portfolioMotion.matches || !precisePointer.matches || event.pointerType === 'touch') return;
-    cancelAnimationFrame(frame);
-    frame = requestAnimationFrame(() => {
-      const bounds = box.getBoundingClientRect();
-      tile.style.setProperty('--tile-x', (5 - 10 * (event.clientY - bounds.top) / bounds.height).toFixed(2) + 'deg');
-      tile.style.setProperty('--tile-y', (12 * (event.clientX - bounds.left) / bounds.width - 6).toFixed(2) + 'deg');
-    });
-  });
-  box.addEventListener('pointerleave', reset);
-  portfolioMotion.addEventListener('change', reset);
-});
+document.querySelectorAll('.show-items article').forEach(box => reveal.observe(box));
