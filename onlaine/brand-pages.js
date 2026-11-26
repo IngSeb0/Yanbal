@@ -57,7 +57,7 @@ if (brandPage) {
 
   const focusNote = brandPage.querySelector('[data-species-note]');
   if (focusNote) {
-    const photos = brandPage.querySelectorAll('.brand-media img');
+    const photos = brandPage.querySelectorAll('.brand-media > img');
     const dog = photos[0].src;
     const cat = photos[1].src;
     brandPage.querySelectorAll('[name=species]').forEach(radio => radio.addEventListener('change', () => {

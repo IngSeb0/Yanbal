@@ -1,4 +1,4 @@
-import { signatureScene } from './signature-scenes.mjs';
+import { floatingPhoto } from './floating-photos.mjs';
 
 export const directions = {
   odontologia: {title:'Una consulta dental, paso a paso', intro:'En la primera visita revisamos tu salud oral, conversamos sobre tus dudas y definimos contigo cómo continuar.', nav:'Tratamientos', secondary:'Explorar tratamientos', flow:'Encuentra tu cita', steps:['Bienvenida y conversación','Valoración de salud oral','Opciones y próximos pasos'], note:'El equipo de esta clínica ficticia representa las funciones de recepción, odontología general y acompañamiento.'},
@@ -23,15 +23,17 @@ const spaces = `<fieldset class="species"><legend>Tipo de espacio</legend>${['Re
 export function brandHero(slug, niche, cta, photo, image) {
   const direction = directions[slug];
   const secondTarget = slug === 'restaurante' ? 'solicitud' : slug === 'veterinaria' ? 'visita' : slug === 'estetica' ? 'experiencia' : 'galeria';
+  const motionControl = '<button class="photo-motion" type="button" data-photo-motion hidden>Repetir movimiento</button>';
   return `<section class="show-hero">
   <div class="brand-copy"><p class="show-kicker">${niche}</p><h1>${direction.title}</h1><p class="brand-intro">${direction.intro}</p>
   ${slug === 'veterinaria' ? species + '<p data-species-note>Controles, vacunas y seguimiento para perros.</p>' : ''}
   ${slug === 'limpieza' ? spaces : ''}
-  <div class="brand-actions"><a class="show-button" href="#experiencia">${cta} <span aria-hidden="true">↗</span></a><a href="#${secondTarget}">${direction.secondary}</a><a class="scene-link" href="#escena-3d">Probar escena 3D <span aria-hidden="true">↓</span></a></div></div>
+  <div class="brand-actions"><a class="show-button" href="#experiencia">${cta} <span aria-hidden="true">↗</span></a><a href="#${secondTarget}">${direction.secondary}</a></div>${slug === 'restaurante' ? motionControl : ''}</div>
   <div class="brand-media"><img data-hero-photo src="${photo}" alt="" width="1200" height="850" fetchpriority="high">
   ${slug === 'veterinaria' ? `<img src="${image('photo-1514888286974-6c03e2ca1dba',480)}" alt="" width="480" height="440" loading="lazy">` : ''}
+  ${floatingPhoto(slug, image)}
+  ${slug === 'restaurante' ? '' : motionControl}
   ${slug === 'inmobiliaria' ? '<div class="brand-feature">Chapinero · 74 m² · Arriendo · $2.800.000/mes</div>' : ''}</div>
-  ${signatureScene(slug)}
   ${slug === 'inmobiliaria' ? propertyFilters : ''}</section>`;
 }
 
