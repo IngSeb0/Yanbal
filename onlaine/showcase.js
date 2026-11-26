@@ -9,17 +9,6 @@ if (showcase) {
   let pending;
   const prices = new Intl.NumberFormat('es-CO', {style:'currency',currency:'COP',maximumFractionDigits:0});
 
-  showcase.querySelector('[data-filter]')?.addEventListener('change', (event) => {
-    let visible = 0;
-    showcase.querySelectorAll('[data-entry]').forEach((entry) => {
-      entry.hidden = Boolean(event.target.value && entry.dataset.entry !== event.target.value);
-      visible += Number(!entry.hidden);
-    });
-    slots.hidden = true;
-    pending = undefined;
-    status.textContent = visible + (visible === 1 ? ' propiedad visible.' : ' propiedades visibles.');
-  });
-
   reset?.addEventListener('click', () => {
     selection.clear();
     status.textContent = 'Selección vacía.';
@@ -41,9 +30,13 @@ if (showcase) {
     if (sector === 'limpieza') {
       const area = showcase.querySelector('[data-area]');
       if (!area.reportValidity()) return;
-      status.textContent = choice + ' · ' + area.value + ' m² · Estimado ficticio: ' + prices.format(Number(detail) * area.valueAsNumber);
+      const frequency = Number(showcase.querySelector('[data-frequency]').value);
+      const extra = showcase.querySelector('[data-extra]').checked ? 18000 : 0;
+      const base = Math.round(Number(detail) * area.valueAsNumber * frequency + extra);
+      status.textContent = choice + ' · ' + area.value + ' m² · Rango ilustrativo: ' + prices.format(base) + ' a ' + prices.format(Math.round(base * 1.18));
       return;
     }
+    if (button.hasAttribute('data-pick')) return;
     const vehicle = showcase.querySelector('[data-vehicle]');
     if (vehicle && (!vehicle.reportValidity() || !vehicle.value.trim())) return;
     pending = vehicle ? choice + ' · ' + vehicle.value.trim() : choice;

@@ -3,11 +3,15 @@ document.querySelectorAll('[data-carousel]').forEach((carousel) => {
   const slides = [...rail.children];
   const controls = carousel.querySelector('.show-controls');
   const dots = [...controls.querySelectorAll('[data-slide]')];
+  const previous = controls.querySelector('[data-prev]');
+  const next = controls.querySelector('[data-next]');
   let current = 0;
   let selected = 0;
 
   function mark(index) {
     current = index;
+    previous.disabled = index === 0;
+    next.disabled = index === slides.length - 1;
     dots.forEach((dot, position) => {
       dot.setAttribute('aria-current', String(position === index));
       slides[position].classList.toggle('is-current', position === index);
@@ -15,7 +19,7 @@ document.querySelectorAll('[data-carousel]').forEach((carousel) => {
   }
 
   function show(index) {
-    selected = (index + slides.length) % slides.length;
+    selected = Math.max(0, Math.min(index, slides.length - 1));
     rail.scrollTo({
       left: slides[selected].offsetLeft - slides[0].offsetLeft,
       behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth',

@@ -8,17 +8,25 @@ const editorial = {
   automotriz: ['Conoce el taller', [['Inspección','Identifica qué revisar antes de autorizar un servicio.','photo-1486262715619-67b85e0b08d3'],['Mantenimiento','Programa el tiempo según la intervención que requiere el vehículo.','photo-1486262715619-67b85e0b08d3'],['Entrega','Revisa el trabajo realizado y aclara dudas al recoger el vehículo.','photo-1492144534655-ae79c964c9d7']], [['¿Qué datos necesito?','El modelo y el servicio bastan para ensayar la reserva.'],['¿Cuánto demora el servicio?','La lista muestra tiempos ficticios. En una visita real se confirmarían después del diagnóstico.']]],
 };
 
-export function story(slug, image) {
-  const [heading, slides, faq] = editorial[slug];
+export function story(slug, image, items) {
+  const [heading, original, faq] = editorial[slug];
+  const isStation = ['odontologia','automotriz','estetica'].includes(slug);
+  const slides = isStation ? items.map(([title, detail], index) => [
+    title, original[index % original.length][1] + ' Duración de ejemplo: ' + (slug === 'estetica' ? detail + ' min.' : detail + '.'), original[index % original.length][2],
+  ]) : original;
   return {
     gallery: `<section class="show-content show-story" id="galeria" aria-labelledby="story-title">
     <h2 id="story-title">${heading}</h2>
     <div class="show-carousel" data-carousel role="group" aria-label="${heading}" tabindex="0">
     <div class="show-rail" data-rail>${slides.map(([title, text, photo], index) => `<figure class="show-slide">
     <img src="${image(photo,950)}" alt="" width="950" height="610" loading="lazy">
-    <figcaption><span>0${index + 1} / 0${slides.length}</span><h3>${title}</h3><p>${text}</p></figcaption></figure>`).join('')}</div>
+    <figcaption><span>0${index + 1} / 0${slides.length}</span><h3>${title}</h3><p>${text}</p>
+    ${isStation ? `<a class="show-button" data-pick="${title}" href="#solicitud">Elegir ${slug==='automotriz'?'este servicio':slug==='estetica'?'este ritual':'este tratamiento'}</a>` : ''}
+    ${slug==='inmobiliaria' ? '<button type="button" data-expand>Ampliar foto</button>' : ''}</figcaption></figure>`).join('')}</div>
     <div class="show-controls" hidden><button type="button" data-prev aria-label="Anterior">←</button><div data-dots>${slides.map(([title], index) => `<button type="button" data-slide="${index}" aria-label="${title}">${index + 1}</button>`).join('')}</div><button type="button" data-next aria-label="Siguiente">→</button></div>
-    </div></section>`,
+    </div>
+    ${slug==='inmobiliaria' ? '<dialog data-property-gallery aria-label="Fotografía ampliada"><img alt="Ambiente del inmueble de ejemplo" width="950" height="610"><div class="brand-dialog-controls"><button data-image-prev type="button">Anterior</button><span data-image-count aria-live="polite"></span><button data-image-next type="button">Siguiente</button><form method="dialog"><button autofocus>Cerrar</button></form></div></dialog>' : ''}
+    </section>`,
     faq: `<section class="show-content show-faq"><h2>Antes de tu visita</h2>${faq.map(([question, answer]) => `<details><summary>${question}</summary><p>${answer}</p></details>`).join('')}<div class="show-callout"><h3>Prueba el recorrido completo</h3><a class="show-button" href="#experiencia">Volver a la experiencia ↑</a></div></section>`,
   };
 }
