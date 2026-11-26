@@ -1,3 +1,5 @@
+import { story } from './demo-story.mjs';
+
 const examples = {
   odontologia: ['Clara Dental','Vuelve a sonreír con confianza.','Odontología preventiva y estética','Encuentra tu cita','photo-1606811971618-4486d14f3f99','Agenda de ejemplo','Selecciona una consulta y luego un horario.','Seleccionar horario', [['Consulta general','45 min'],['Limpieza dental','30 min'],['Ortodoncia','60 min']]],
   restaurante: ['Brasa & Mesa','La mesa está servida.','Cocina de temporada','Explorar la carta','photo-1517248135467-4c7edcad34c4','Carta interactiva','Arma un pedido y consulta el total.','Añadir al pedido', [['Arepas de maíz asado',22000],['Pollo a la brasa',42000],['Torta tibia de chocolate',18000]]],
@@ -22,12 +24,14 @@ const image = (photo,width) => `https://images.unsplash.com/${photo}?auto=format
 
 export function showcaseDemo({slug,name,images,contact,hours,location,sections}) {
   const [brand, headline, niche, cta, photo, heading, instruction, action, items] = examples[slug];
+  const narrative = story(slug, image);
   const totals = ['restaurante','estetica'].includes(slug);
   const entries = items.map(([label, detail]) => `<article data-entry="${escape(detail)}"><h3>${escape(label)}</h3><p>${slug === 'restaurante' ? money(detail) : slug === 'estetica' ? detail + ' min' : slug === 'limpieza' ? money(detail) + '/m²' : escape(detail)}</p>${sections.includes('interaction') ? `<button type="button" data-choice="${escape(label)}" data-detail="${escape(detail)}">${action}<span class="demo-sr"> · ${escape(label)}</span></button>` : ''}</article>`).join('');
   return `<div class="showcase theme-${slug}" data-showcase="${slug}">
-  <div class="show-top"><strong>${brand}</strong><span>Demostración · ${name}</span><a href="#experiencia">${cta}</a></div>
+  <div class="show-top"><strong>${brand}</strong><span>Demostración · ${name}</span><nav aria-label="Demostración"><a href="#galeria">Galería</a><a href="#experiencia">${cta}</a></nav></div>
   <section class="show-hero"><div><p class="show-kicker">${niche}</p><h1>${headline}</h1><a class="show-button" href="#experiencia">${cta} <span aria-hidden="true">↗</span></a></div>
   <img src="${escape(images[0]?.src || image(photo,1200))}" alt="${escape(images[0]?.alt || '')}" width="1200" height="850" fetchpriority="high"></section>
+  ${narrative.gallery}
   <section class="show-content" id="experiencia"><p class="show-kicker">${brand}</p><h2>${heading}</h2><p>${instruction}</p>
   ${slug === 'inmobiliaria' ? '<label>Tipo de operación<select data-filter><option value="">Todas</option><option>Venta</option><option>Arriendo</option></select></label>' : ''}
   ${slug === 'limpieza' ? '<label>Área aproximada (m²)<input data-area type="number" value="60" min="20" max="1000" step="1" required></label>' : ''}
@@ -35,5 +39,5 @@ export function showcaseDemo({slug,name,images,contact,hours,location,sections})
   ${sections.includes('services') ? `<div class="show-items">${entries}</div>` : ''}
   <div class="show-result"><p role="status"></p>${totals ? '<button data-reset type="button" hidden>Vaciar selección</button>' : ''}<div data-slots hidden><label>Horario de ejemplo<select><option>09:00</option><option>11:30</option><option>15:00</option></select></label><button type="button" data-confirm>Confirmar simulación</button></div></div>
   <p class="show-note">Sitio ficticio de Onlaine. Las selecciones son de prueba y no se envían.</p>
-  ${[location,hours,contact].filter(Boolean).map(value => `<p>${escape(value)}</p>`).join('')}</section></div>`;
+  ${[location,hours,contact].filter(Boolean).map(value => `<p>${escape(value)}</p>`).join('')}</section>${narrative.faq}</div>`;
 }

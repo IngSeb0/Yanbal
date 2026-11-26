@@ -20,6 +20,10 @@ test('all seven demos are built and excluded from indexing', async () => {
     const html = await readFile('dist/demostraciones/' + demo.slug + '.html','utf8');
     assert.match(html, /noindex,nofollow/);
     assert.match(html, /data-choice/);
+    assert.equal((html.match(/class="show-slide"/g) ?? []).length, 3);
+    assert.match(html, /data-prev/);
+    assert.match(html, /data-next/);
+    assert.match(html, /class="show-content show-faq"/);
     assert.ok(!sitemap.includes(demo.slug));
   }
 });
