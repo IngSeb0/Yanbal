@@ -1,0 +1,25 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+import { validate } from '../api/leads.js';
+import { demos, services } from '../content.mjs';
+
+test('lead validation requires consent and rejects unexpected services and protocols', () => {
+  const body = {name:'Prueba',business:'Prueba',email:'prueba@example.com',whatsapp:'+57 300 000 0000',sector:demos[0].name,service:services[0][0],description:'Prueba',consent:'1'};
+  assert.equal(validate(body).consentVersion, '1');
+  assert.equal(validate({...body, consent:''}), null);
+  assert.equal(validate({...body, website:'javascript:alert(1)'}), null);
+  assert.equal(validate({...body, service:'desconocido'}), null);
+});
+
+test('all seven demos are built and excluded from indexing', async () => {
+  await import('../build.mjs');
+  assert.equal(demos.length, 7);
+  const sitemap = await readFile('dist/sitemap.xml','utf8');
+  for (const demo of demos) {
+    const html = await readFile('dist/demostraciones/' + demo.slug + '.html','utf8');
+    assert.match(html, /noindex,nofollow/);
+    assert.match(html, /Simular solicitud/);
+    assert.ok(!sitemap.includes(demo.slug));
+  }
+});
