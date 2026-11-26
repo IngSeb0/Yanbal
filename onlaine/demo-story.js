@@ -101,9 +101,11 @@ document.querySelectorAll('[data-carousel]').forEach((carousel) => {
       schedule();
     }
   });
-  rail.addEventListener('pointerenter', (event) => {
+  rail.addEventListener('pointermove', (event) => {
     if (event.pointerType !== 'mouse') return;
-    hovering = true;
+    const overPhoto = Boolean(event.target.closest('.show-slide img'));
+    if (hovering === overPhoto) return;
+    hovering = overPhoto;
     schedule();
   });
   rail.addEventListener('pointerleave', (event) => {
