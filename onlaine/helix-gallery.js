@@ -217,7 +217,12 @@ document.querySelectorAll('[data-helix]').forEach((gallery) => {
     motionOverride = !motionOverride;
     if (motionOverride) setPlayback(true);
     setMode();
-    if (motionOverride) stage.scrollIntoView({block:'center'});
+    if (motionOverride) {
+      stage.scrollIntoView({block:'center'});
+      const bounds = stage.getBoundingClientRect();
+      visible = bounds.bottom > 0 && bounds.top < window.innerHeight;
+      step(-1);
+    }
   });
   fullMotion.addEventListener('change', () => {
     motionOverride = false;
