@@ -55,7 +55,9 @@ document.querySelectorAll('[data-helix]').forEach((gallery) => {
     const index = wrap(Math.round(-offset), total);
     const current = cards[index];
     if (active !== current || !output.value) {
+      active.classList.remove('is-featured');
       active = current;
+      active.classList.add('is-featured');
       output.value = active.dataset.sector + ' · ' + (index + 1) + ' de ' + total;
       activeLink.href = active.href;
       activeLink.setAttribute('aria-label', 'Abrir demo de ' + active.dataset.sector);
