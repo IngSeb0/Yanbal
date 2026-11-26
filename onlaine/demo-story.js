@@ -70,9 +70,10 @@ document.querySelectorAll('[data-carousel]').forEach((carousel) => {
   }
 
   function syncPlayback() {
-    playback.hidden = reducedGalleryMotion.matches;
-    playback.textContent = paused ? 'Reanudar' : 'Pausar';
-    playback.setAttribute('aria-label', paused ? 'Reanudar giro automÃ¡tico' : 'Pausar giro automÃ¡tico');
+    carousel.classList.toggle('allow-gallery-motion', motionOverride);
+    const label = !motionEnabled() ? 'Activar animación' : paused ? 'Reanudar' : 'Pausar';
+    playback.textContent = label;
+    playback.setAttribute('aria-label', motionEnabled() ? label + ' giro automático' : label);
     schedule();
   }
 
