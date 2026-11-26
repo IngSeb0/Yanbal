@@ -29,3 +29,17 @@ test('all seven demos are built and excluded from indexing', async () => {
     assert.ok(!sitemap.includes(demo.slug));
   }
 });
+
+test('each published photograph has a distinct source across the index and seven demos', async () => {
+  await import('../build.mjs');
+  const names = ['index', ...demos.map(({slug}) => 'demostraciones/' + slug)];
+  const seen = new Set();
+  for (const name of names) {
+    const html = await readFile('dist/' + name + '.html', 'utf8');
+    for (const [,photo] of html.matchAll(/<img\b[^>]*\bsrc="https:\/\/images\.unsplash\.com\/(photo-[\w-]+)/g)) {
+      assert.ok(!seen.has(photo), 'Repeated photograph ' + photo + ' in ' + name);
+      seen.add(photo);
+    }
+  }
+  assert.ok(seen.size >= 40);
+});
